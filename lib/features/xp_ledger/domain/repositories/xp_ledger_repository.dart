@@ -11,6 +11,11 @@ abstract class XpLedgerRepository {
     DateTime date,
   );
 
+  /// Every transaction recorded on [date], across all quests — the Today
+  /// dashboard's "activity today" view. [date] must already be
+  /// UTC-date-normalized, same convention as [getTransactionsForQuestAndDate].
+  Future<List<XpTransaction>> getTransactionsForDate(DateTime date);
+
   Future<List<XpTransaction>> getAll();
 
   Future<int> sumLifetimeXp();

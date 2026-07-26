@@ -101,7 +101,7 @@ final class CompleteQuestControllerProvider
 }
 
 String _$completeQuestControllerHash() =>
-    r'88d67a8b023a308dd5e9813c9912a21cd638ce05';
+    r'd49688ffd87210d406af87d7ebd3ba4354eba7a2';
 
 /// Drives one quest completion through [CompleteQuestUseCase] and exposes
 /// its outcome as an [AsyncValue]:

@@ -89,6 +89,14 @@ class _FakeXpLedgerRepository implements XpLedgerRepository {
   }
 
   @override
+  Future<List<XpTransaction>> getTransactionsForDate(DateTime date) async {
+    final dateKey = _dateKey(date);
+    return byKey.values
+        .where((t) => t.sourceId.split('|').elementAtOrNull(1) == dateKey)
+        .toList();
+  }
+
+  @override
   Future<List<XpTransaction>> getAll() async => byKey.values.toList();
 
   @override

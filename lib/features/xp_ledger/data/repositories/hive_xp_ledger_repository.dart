@@ -51,6 +51,28 @@ class HiveXpLedgerRepository implements XpLedgerRepository {
   }
 
   @override
+  Future<List<XpTransaction>> getTransactionsForDate(DateTime date) async {
+    final normalized = DateTime.utc(date.year, date.month, date.day);
+    final dateKey = HiveKeys.dateKey(normalized);
+    final matches =
+        _box.values
+            .where((model) => _dateKeyOf(model.sourceId) == dateKey)
+            .map(_mapper.toDomain)
+            .toList()
+          ..sort(_byCreatedAtThenKey);
+    return matches;
+  }
+
+  /// Every `sourceId` written by `CompleteQuestUseCase` follows
+  /// `"questId|dateKey|repeatIndex"` (see that class's doc comment) — the
+  /// second `|`-separated segment is always the date key, regardless of
+  /// which quest or repeat index produced the row.
+  String? _dateKeyOf(String sourceId) {
+    final parts = sourceId.split('|');
+    return parts.length >= 2 ? parts[1] : null;
+  }
+
+  @override
   Future<List<XpTransaction>> getAll() async {
     final all = _box.values.map(_mapper.toDomain).toList()
       ..sort(_byCreatedAtThenKey);

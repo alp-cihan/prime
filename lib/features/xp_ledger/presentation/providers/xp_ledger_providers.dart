@@ -31,6 +31,15 @@ Future<List<XpTransaction>> xpTransactionsForQuestAndDate(
   return repository.getTransactionsForQuestAndDate(questId, date);
 }
 
+/// Every transaction recorded on [date], across all quests. [date] must
+/// already be UTC-date-normalized, for the same reason documented on
+/// [xpTransactionsForQuestAndDate].
+@riverpod
+Future<List<XpTransaction>> xpTransactionsForDate(Ref ref, DateTime date) {
+  final repository = ref.watch(xpLedgerRepositoryProvider);
+  return repository.getTransactionsForDate(date);
+}
+
 /// Lifetime total XP, derived fresh from the ledger every time — never a
 /// stored/cached total (CLAUDE.md: "Cached XP totals are projections, not
 /// the source of truth").

@@ -192,6 +192,103 @@ final class XpTransactionsForQuestAndDateFamily extends $Family
   String toString() => r'xpTransactionsForQuestAndDateProvider';
 }
 
+/// Every transaction recorded on [date], across all quests. [date] must
+/// already be UTC-date-normalized, for the same reason documented on
+/// [xpTransactionsForQuestAndDate].
+
+@ProviderFor(xpTransactionsForDate)
+final xpTransactionsForDateProvider = XpTransactionsForDateFamily._();
+
+/// Every transaction recorded on [date], across all quests. [date] must
+/// already be UTC-date-normalized, for the same reason documented on
+/// [xpTransactionsForQuestAndDate].
+
+final class XpTransactionsForDateProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<XpTransaction>>,
+          List<XpTransaction>,
+          FutureOr<List<XpTransaction>>
+        >
+    with
+        $FutureModifier<List<XpTransaction>>,
+        $FutureProvider<List<XpTransaction>> {
+  /// Every transaction recorded on [date], across all quests. [date] must
+  /// already be UTC-date-normalized, for the same reason documented on
+  /// [xpTransactionsForQuestAndDate].
+  XpTransactionsForDateProvider._({
+    required XpTransactionsForDateFamily super.from,
+    required DateTime super.argument,
+  }) : super(
+         retry: null,
+         name: r'xpTransactionsForDateProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$xpTransactionsForDateHash();
+
+  @override
+  String toString() {
+    return r'xpTransactionsForDateProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<XpTransaction>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<XpTransaction>> create(Ref ref) {
+    final argument = this.argument as DateTime;
+    return xpTransactionsForDate(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is XpTransactionsForDateProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$xpTransactionsForDateHash() =>
+    r'f5821192f81b0569d9fa0e41ee6e03167d78ea15';
+
+/// Every transaction recorded on [date], across all quests. [date] must
+/// already be UTC-date-normalized, for the same reason documented on
+/// [xpTransactionsForQuestAndDate].
+
+final class XpTransactionsForDateFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<XpTransaction>>, DateTime> {
+  XpTransactionsForDateFamily._()
+    : super(
+        retry: null,
+        name: r'xpTransactionsForDateProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// Every transaction recorded on [date], across all quests. [date] must
+  /// already be UTC-date-normalized, for the same reason documented on
+  /// [xpTransactionsForQuestAndDate].
+
+  XpTransactionsForDateProvider call(DateTime date) =>
+      XpTransactionsForDateProvider._(argument: date, from: this);
+
+  @override
+  String toString() => r'xpTransactionsForDateProvider';
+}
+
 /// Lifetime total XP, derived fresh from the ledger every time — never a
 /// stored/cached total (CLAUDE.md: "Cached XP totals are projections, not
 /// the source of truth").

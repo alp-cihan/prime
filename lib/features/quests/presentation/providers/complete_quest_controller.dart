@@ -58,10 +58,11 @@ class CompleteQuestController extends _$CompleteQuestController {
   }
 
   /// Invalidates only what a successful completion can have changed: this
-  /// quest's progress and ledger rows for [command.date], plus the two
-  /// lifetime-derived XP providers. Nothing else — completing a quest never
-  /// changes the quest list itself (`CompleteQuestUseCase` never writes
-  /// through `QuestRepository`).
+  /// quest's progress and ledger rows for [command.date], the all-quests
+  /// ledger view for that same date (the Today dashboard's activity feed),
+  /// plus the two lifetime-derived XP providers. Nothing else — completing
+  /// a quest never changes the quest list itself (`CompleteQuestUseCase`
+  /// never writes through `QuestRepository`).
   void _invalidateAffected(CompleteQuestCommand command) {
     final date = DateTime.utc(
       command.date.year,
@@ -72,6 +73,7 @@ class CompleteQuestController extends _$CompleteQuestController {
     ref.invalidate(
       xpTransactionsForQuestAndDateProvider(command.questId, date),
     );
+    ref.invalidate(xpTransactionsForDateProvider(date));
     ref.invalidate(totalXpProvider);
     ref.invalidate(xpByAttributeProvider);
   }
