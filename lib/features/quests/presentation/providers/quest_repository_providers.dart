@@ -26,6 +26,16 @@ QuestProgressRepository questProgressRepository(Ref ref) =>
 @Riverpod(keepAlive: true)
 Clock clock(Ref ref) => const SystemClock();
 
+/// Today, normalized to a UTC date-only value — the same normalization
+/// `CompleteQuestUseCase` and the Hive repositories already apply. Backed by
+/// [clockProvider] so overriding that one provider in tests (a fixed
+/// [Clock]) deterministically controls "today" everywhere in the UI too.
+@riverpod
+DateTime todayUtc(Ref ref) {
+  final now = ref.watch(clockProvider).now();
+  return DateTime.utc(now.year, now.month, now.day);
+}
+
 @Riverpod(keepAlive: true)
 QuestXpCalculator questXpCalculator(Ref ref) => const QuestXpCalculator();
 

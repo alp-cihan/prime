@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/focus/presentation/focus_page.dart';
 import '../../features/journal/presentation/journal_page.dart';
+import '../../features/quests/presentation/quest_detail_page.dart';
 import '../../features/quests/presentation/quests_page.dart';
 import '../../features/story/presentation/story_page.dart';
 import '../../features/today/presentation/today_page.dart';
@@ -37,6 +38,20 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.quests,
                 builder: (context, state) => const QuestsPage(),
+                routes: [
+                  // Nested under the quests branch (not a separate shell
+                  // destination) so detail keeps the bottom nav visible and
+                  // shares this branch's own navigation stack — per
+                  // docs/architecture.md §19 (`/quests/:id`) and the
+                  // StatefulShellRoute.indexedStack pattern already in use.
+                  GoRoute(
+                    path: AppRoutes.questDetailSegment,
+                    builder: (context, state) {
+                      final questId = state.pathParameters['questId']!;
+                      return QuestDetailPage(questId: questId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

@@ -149,6 +149,61 @@ final class ClockProvider extends $FunctionalProvider<Clock, Clock, Clock>
 
 String _$clockHash() => r'55214d6539f7396a3ae1aa23b06eea79fdac0ebe';
 
+/// Today, normalized to a UTC date-only value — the same normalization
+/// `CompleteQuestUseCase` and the Hive repositories already apply. Backed by
+/// [clockProvider] so overriding that one provider in tests (a fixed
+/// [Clock]) deterministically controls "today" everywhere in the UI too.
+
+@ProviderFor(todayUtc)
+final todayUtcProvider = TodayUtcProvider._();
+
+/// Today, normalized to a UTC date-only value — the same normalization
+/// `CompleteQuestUseCase` and the Hive repositories already apply. Backed by
+/// [clockProvider] so overriding that one provider in tests (a fixed
+/// [Clock]) deterministically controls "today" everywhere in the UI too.
+
+final class TodayUtcProvider
+    extends $FunctionalProvider<DateTime, DateTime, DateTime>
+    with $Provider<DateTime> {
+  /// Today, normalized to a UTC date-only value — the same normalization
+  /// `CompleteQuestUseCase` and the Hive repositories already apply. Backed by
+  /// [clockProvider] so overriding that one provider in tests (a fixed
+  /// [Clock]) deterministically controls "today" everywhere in the UI too.
+  TodayUtcProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'todayUtcProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$todayUtcHash();
+
+  @$internal
+  @override
+  $ProviderElement<DateTime> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  DateTime create(Ref ref) {
+    return todayUtc(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTime value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DateTime>(value),
+    );
+  }
+}
+
+String _$todayUtcHash() => r'994d98f891eefe47161ba155b9a42f6c923f16d9';
+
 @ProviderFor(questXpCalculator)
 final questXpCalculatorProvider = QuestXpCalculatorProvider._();
 
