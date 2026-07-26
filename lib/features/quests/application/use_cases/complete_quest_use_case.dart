@@ -1,5 +1,6 @@
 import '../../../../core/domain/failure.dart';
 import '../../../../core/domain/result.dart';
+import '../../../../core/persistence/hive_keys.dart';
 import '../../../xp_ledger/domain/entities/xp_transaction.dart';
 import '../../../xp_ledger/domain/repositories/xp_ledger_repository.dart';
 import '../../domain/entities/quest.dart';
@@ -83,7 +84,7 @@ class CompleteQuestUseCase {
     }
 
     final date = _normalizeDate(command.date);
-    final dateKey = _dateKey(date);
+    final dateKey = HiveKeys.dateKey(date);
 
     // 4. Read today's existing progress (if any) for this quest/date.
     final existingProgress = await _questProgressRepository.getForQuestAndDate(
@@ -230,11 +231,4 @@ class CompleteQuestUseCase {
   /// DST drift, so `(questId, date)` comparisons are stable.
   DateTime _normalizeDate(DateTime date) =>
       DateTime.utc(date.year, date.month, date.day);
-
-  String _dateKey(DateTime date) {
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
-  }
 }
