@@ -31,6 +31,9 @@ class _FakeQuestRepository implements QuestRepository {
 
   @override
   Future<void> upsert(Quest quest) async => quests[quest.id] = quest;
+
+  @override
+  Future<void> deleteById(String id) async => quests.remove(id);
 }
 
 class _FakeQuestProgressRepository implements QuestProgressRepository {
@@ -57,6 +60,11 @@ class _FakeQuestProgressRepository implements QuestProgressRepository {
       (e) => e.questId == progress.questId && _sameDate(e.date, progress.date),
     );
     entries.add(progress);
+  }
+
+  @override
+  Future<void> deleteAllForQuest(String questId) async {
+    entries.removeWhere((e) => e.questId == questId);
   }
 
   bool _sameDate(DateTime a, DateTime b) =>

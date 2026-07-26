@@ -49,6 +49,15 @@ class HiveQuestProgressRepository implements QuestProgressRepository {
     );
   }
 
+  @override
+  Future<void> deleteAllForQuest(String questId) async {
+    final keysToDelete = _box.keys.where((key) {
+      final model = _box.get(key);
+      return model != null && model.questId == questId;
+    });
+    await _box.deleteAll(keysToDelete);
+  }
+
   DateTime _normalize(DateTime date) =>
       DateTime.utc(date.year, date.month, date.day);
 }

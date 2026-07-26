@@ -62,6 +62,17 @@ String questTypeDisplayName(QuestType type) {
   }
 }
 
+String progressTypeDisplayName(ProgressType type) {
+  switch (type) {
+    case ProgressType.binary:
+      return 'Binary (done / not done)';
+    case ProgressType.quantity:
+      return 'Quantity';
+    case ProgressType.duration:
+      return 'Duration';
+  }
+}
+
 String questCompletionStateDisplayName(QuestCompletionState state) {
   switch (state) {
     case QuestCompletionState.notStarted:

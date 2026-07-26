@@ -43,6 +43,13 @@ Widget _harness(List<Override> overrides) {
         path: '/quests',
         builder: (context, state) => const QuestsPage(),
         routes: [
+          // Declared before `:questId`, matching the real router, so
+          // `/quests/new` never gets captured as `:questId = "new"`.
+          GoRoute(
+            path: 'new',
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('create-form'))),
+          ),
           GoRoute(
             path: ':questId',
             builder: (context, state) => Scaffold(
@@ -129,5 +136,58 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('detail:q1'), findsOneWidget);
+  });
+
+  testWidgets('the Create Quest action is visible in the empty state', (
+    tester,
+  ) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(_harness(overrides));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Create Quest'), findsOneWidget);
+  });
+
+  testWidgets('the Create Quest action is visible when quests exist', (
+    tester,
+  ) async {
+    final questRepository = FakeQuestRepository()..quests['q1'] = _buildQuest();
+    final overrides = fakeProviderOverrides(
+      questRepository: questRepository,
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(_harness(overrides));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FloatingActionButton), findsOneWidget);
+  });
+
+  testWidgets('tapping the Create Quest FAB navigates to /quests/new', (
+    tester,
+  ) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(_harness(overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('create-form'), findsOneWidget);
   });
 }

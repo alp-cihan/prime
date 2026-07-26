@@ -38,3 +38,12 @@ final class NotFoundFailure extends Failure {
 final class InvalidStateFailure extends Failure {
   const InvalidStateFailure(super.message);
 }
+
+/// An unexpected, non-domain-rule failure — typically a repository/storage
+/// exception caught and converted into a [Result] rather than left to
+/// propagate as a raw exception. First used by Phase 7's quest
+/// create/update/delete use cases. See [NotFoundFailure] for why
+/// operation-specific failures live in this file.
+final class UnexpectedFailure extends Failure {
+  const UnexpectedFailure(super.message);
+}

@@ -118,6 +118,44 @@ void main() {
     expect(emissions.last.map((q) => q.id), ['q1']);
   });
 
+  test('deleteById removes the quest record', () async {
+    final box = await openBox();
+    final repo = HiveQuestRepository(box);
+    await repo.upsert(_buildQuest());
+
+    await repo.deleteById('q1');
+
+    expect(await repo.getById('q1'), isNull);
+    expect(await repo.getAll(), isEmpty);
+  });
+
+  test('deleteById on an unknown id is a no-op', () async {
+    final box = await openBox();
+    final repo = HiveQuestRepository(box);
+    await repo.upsert(_buildQuest());
+
+    await repo.deleteById('missing');
+
+    expect(await repo.getAll(), hasLength(1));
+  });
+
+  test('watchAll emits again after a deleteById', () async {
+    final box = await openBox();
+    final repo = HiveQuestRepository(box);
+    await repo.upsert(_buildQuest());
+
+    final emissions = <List<Quest>>[];
+    final subscription = repo.watchAll().listen(emissions.add);
+    addTearDown(subscription.cancel);
+    await pumpEventQueue();
+    expect(emissions.single, hasLength(1));
+
+    await repo.deleteById('q1');
+    await pumpEventQueue();
+
+    expect(emissions.last, isEmpty);
+  });
+
   test('persistence survives closing and reopening the box', () async {
     final box = await openBox();
     final repo = HiveQuestRepository(box);

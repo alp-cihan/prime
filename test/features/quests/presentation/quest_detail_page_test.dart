@@ -45,8 +45,26 @@ Widget _harness(String questId, List<Override> overrides) {
     initialLocation: '/quests/$questId',
     routes: [
       GoRoute(
-        path: '/quests/:questId',
-        builder: (context, state) => QuestDetailPage(questId: questId),
+        path: '/quests',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('quest-list'))),
+        routes: [
+          GoRoute(
+            path: ':questId',
+            builder: (context, state) =>
+                QuestDetailPage(questId: state.pathParameters['questId']!),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                builder: (context, state) => Scaffold(
+                  body: Center(
+                    child: Text('edit-form:${state.pathParameters['questId']}'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );
@@ -279,6 +297,161 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("Couldn't complete this quest"), findsOneWidget);
+    },
+  );
+
+  testWidgets('the edit action navigates to the edit route', (tester) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: _today,
+    );
+
+    await tester.pumpWidget(_harness('q1', overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.edit_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('edit-form:q1'), findsOneWidget);
+  });
+
+  testWidgets('the delete action opens a confirmation naming the quest', (
+    tester,
+  ) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: _today,
+    );
+
+    await tester.pumpWidget(_harness('q1', overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete quest?'), findsOneWidget);
+    expect(find.textContaining('"Workout"'), findsOneWidget);
+  });
+
+  testWidgets('cancel leaves the quest untouched', (tester) async {
+    final questRepository = FakeQuestRepository()..quests['q1'] = _buildQuest();
+    final overrides = fakeProviderOverrides(
+      questRepository: questRepository,
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: _today,
+    );
+
+    await tester.pumpWidget(_harness('q1', overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete quest?'), findsNothing);
+    expect(questRepository.quests.containsKey('q1'), isTrue);
+    expect(find.text('quest-list'), findsNothing); // did not navigate away
+  });
+
+  testWidgets('confirm deletes the quest and returns to the quest list', (
+    tester,
+  ) async {
+    final questRepository = FakeQuestRepository()..quests['q1'] = _buildQuest();
+    final overrides = fakeProviderOverrides(
+      questRepository: questRepository,
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: _today,
+    );
+
+    await tester.pumpWidget(_harness('q1', overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(questRepository.quests.containsKey('q1'), isFalse);
+    expect(find.text('quest-list'), findsOneWidget);
+  });
+
+  testWidgets(
+    'delete loading disables the delete action, preventing a duplicate dialog',
+    (tester) async {
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest();
+      final progressRepository = FakeQuestProgressRepository();
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: progressRepository,
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness('q1', overrides));
+      await tester.pumpAndSettle();
+
+      final gate = Completer<void>();
+      progressRepository.deleteAllForQuestGate = gate;
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+      // Bounded pumps, not pumpAndSettle: the AppBar's own
+      // CircularProgressIndicator (shown while deletion is in flight) is
+      // indeterminate and animates forever, which would make pumpAndSettle
+      // time out. These still give the dialog's close transition time to
+      // finish.
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // The delete icon is replaced by a spinner and disabled — attempting
+      // to tap it again cannot reopen the confirmation dialog while this
+      // deletion is still in flight.
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+      await tester.tap(find.byTooltip('Delete Quest'), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Delete quest?'), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(questRepository.quests.containsKey('q1'), isFalse);
+    },
+  );
+
+  testWidgets(
+    'a delete failure keeps the user on the detail screen and shows an error',
+    (tester) async {
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest();
+      final progressRepository = FakeQuestProgressRepository()
+        ..deleteAllForQuestError = Exception('box error');
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: progressRepository,
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness('q1', overrides));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      // Stayed on the detail screen — never navigated to the list.
+      expect(find.text('quest-list'), findsNothing);
+      expect(find.text('Workout'), findsOneWidget); // AppBar title still shows
+      expect(questRepository.quests.containsKey('q1'), isTrue);
     },
   );
 }

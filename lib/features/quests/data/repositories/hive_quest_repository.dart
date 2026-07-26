@@ -34,6 +34,11 @@ class HiveQuestRepository implements QuestRepository {
     await _box.put(quest.id, _mapper.toModel(quest));
   }
 
+  @override
+  Future<void> deleteById(String id) async {
+    await _box.delete(id);
+  }
+
   /// Sorted by id for deterministic reads — Hive's own iteration order is
   /// not a stable ordering contract to rely on.
   List<Quest> _readAllSorted() {

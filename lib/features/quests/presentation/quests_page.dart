@@ -18,6 +18,11 @@ class QuestsPage extends ConsumerWidget {
 
     return PrimePageScaffold(
       title: 'Quests',
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.go(AppRoutes.questNew),
+        tooltip: 'Create Quest',
+        child: const Icon(Icons.add),
+      ),
       body: questsAsync.when(
         data: (quests) {
           if (quests.isEmpty) {
@@ -69,12 +74,23 @@ class _EmptyQuests extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Text(
-          'No quests yet. Quests you create will show up here.',
-          textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: AppColors.darkTextSecondary),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'No quests yet. Quests you create will show up here.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            FilledButton.icon(
+              onPressed: () => context.go(AppRoutes.questNew),
+              icon: const Icon(Icons.add),
+              label: const Text('Create Quest'),
+            ),
+          ],
         ),
       ),
     );

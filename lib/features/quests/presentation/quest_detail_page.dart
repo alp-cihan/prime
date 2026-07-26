@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/domain/failure.dart';
+import '../../../core/router/app_routes.dart';
 import '../../xp_ledger/presentation/providers/xp_ledger_providers.dart';
 import '../application/models/complete_quest_command.dart';
 import '../application/models/complete_quest_result.dart';
 import '../domain/entities/quest.dart';
 import 'providers/complete_quest_controller.dart';
+import 'providers/delete_quest_controller.dart';
 import 'providers/quest_query_providers.dart';
 import 'providers/quest_repository_providers.dart';
 import 'widgets/complete_quest_button.dart';
@@ -17,14 +20,32 @@ import 'widgets/quest_progress_summary.dart';
 /// own navigation stack (see app_router.dart), so the bottom nav stays
 /// visible and back navigation returns to the list without losing its
 /// scroll position or the other tabs' state.
-class QuestDetailPage extends ConsumerWidget {
+class QuestDetailPage extends ConsumerStatefulWidget {
   const QuestDetailPage({super.key, required this.questId});
 
   final String questId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final questAsync = ref.watch(questByIdProvider(questId));
+  ConsumerState<QuestDetailPage> createState() => _QuestDetailPageState();
+}
+
+class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
+  @override
+  void initState() {
+    super.initState();
+    // `deleteQuestControllerProvider` is a single shared, keepAlive
+    // controller — without this, a previous quest's failed-deletion error
+    // (or a stale success) would otherwise still be sitting there the first
+    // time *this* quest's detail page reads it.
+    Future.microtask(
+      () => ref.read(deleteQuestControllerProvider.notifier).reset(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final questAsync = ref.watch(questByIdProvider(widget.questId));
+    final deleteState = ref.watch(deleteQuestControllerProvider);
 
     // Fires only on an actual state transition (Riverpod dedupes the
     // underlying subscription per element), never on an unrelated rebuild —
@@ -49,8 +70,47 @@ class QuestDetailPage extends ConsumerWidget {
       },
     );
 
+    ref.listen<AsyncValue<bool>>(deleteQuestControllerProvider, (
+      previous,
+      next,
+    ) {
+      if (next.hasValue && next.value == true) {
+        if (!context.mounted) return;
+        // Explicit target rather than a pop — correct regardless of how
+        // this detail page was reached (e.g. from the Today dashboard).
+        context.go(AppRoutes.quests);
+        ref.read(deleteQuestControllerProvider.notifier).reset();
+      } else if (next.hasError) {
+        debugPrint('Quest delete failed: ${next.error}');
+      }
+    });
+
     return Scaffold(
-      appBar: AppBar(title: Text(questAsync.value?.title ?? 'Quest')),
+      appBar: AppBar(
+        title: Text(questAsync.value?.title ?? 'Quest'),
+        actions: [
+          IconButton(
+            onPressed: deleteState.isLoading
+                ? null
+                : () => context.go(AppRoutes.questEdit(widget.questId)),
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit Quest',
+          ),
+          IconButton(
+            onPressed: deleteState.isLoading
+                ? null
+                : () => _confirmDelete(context, questAsync.value),
+            icon: deleteState.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.delete_outline),
+            tooltip: 'Delete Quest',
+          ),
+        ],
+      ),
       body: questAsync.when(
         data: (quest) {
           if (quest == null) return const _QuestNotFound();
@@ -59,10 +119,45 @@ class QuestDetailPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _DetailError(
           error: error,
-          onRetry: () => ref.invalidate(questByIdProvider(questId)),
+          onRetry: () => ref.invalidate(questByIdProvider(widget.questId)),
         ),
       ),
     );
+  }
+
+  /// Shown from a tap handler (a side-effect boundary), never from `build` —
+  /// the dialog itself closes immediately on either choice (it holds no
+  /// loading state of its own), so there is exactly one way to trigger a
+  /// second confirmation: tapping the AppBar delete icon again, which is
+  /// already disabled while [deleteQuestControllerProvider] is loading.
+  Future<void> _confirmDelete(BuildContext context, Quest? quest) async {
+    if (quest == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete quest?'),
+        content: Text(
+          'Delete "${quest.title}"? This removes the quest and its daily '
+          'progress. XP you already earned from it is kept.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    ref.read(deleteQuestControllerProvider.notifier).delete(quest.id);
   }
 }
 

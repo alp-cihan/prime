@@ -114,6 +114,58 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    '/quests/new opens the create form — "new" is not treated as a quest id',
+    (tester) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(context).go('/quests/new');
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(FilledButton, 'Create Quest'), findsOneWidget);
+      expect(find.textContaining("doesn't exist"), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('/quests/:questId/edit opens a prefilled edit form', (
+    tester,
+  ) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(overrides: overrides, child: const PrimeApp()),
+    );
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.byType(Scaffold).first);
+    GoRouter.of(context).go('/quests/q1/edit');
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(FilledButton, 'Save Changes'), findsOneWidget);
+    final titleField = tester.widget<TextFormField>(
+      find.widgetWithText(TextFormField, 'Title'),
+    );
+    expect(titleField.controller!.text, 'Workout');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('/focus remains outside the shell (no bottom nav)', (
     tester,
   ) async {

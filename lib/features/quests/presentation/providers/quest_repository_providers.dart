@@ -3,11 +3,16 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/persistence_providers.dart';
 import '../../../xp_ledger/presentation/providers/xp_ledger_providers.dart';
 import '../../application/clock.dart';
+import '../../application/id_generator.dart';
 import '../../application/use_cases/complete_quest_use_case.dart';
+import '../../application/use_cases/create_quest_use_case.dart';
+import '../../application/use_cases/delete_quest_use_case.dart';
+import '../../application/use_cases/update_quest_use_case.dart';
 import '../../data/repositories/hive_quest_progress_repository.dart';
 import '../../data/repositories/hive_quest_repository.dart';
 import '../../domain/repositories/quest_progress_repository.dart';
 import '../../domain/repositories/quest_repository.dart';
+import '../../domain/services/quest_input_validator.dart';
 import '../../domain/services/quest_xp_calculator.dart';
 
 part 'quest_repository_providers.g.dart';
@@ -52,5 +57,39 @@ CompleteQuestUseCase completeQuestUseCase(Ref ref) {
     xpLedgerRepository: ref.watch(xpLedgerRepositoryProvider),
     calculator: ref.watch(questXpCalculatorProvider),
     clock: ref.watch(clockProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+IdGenerator idGenerator(Ref ref) => const UuidV4IdGenerator();
+
+@Riverpod(keepAlive: true)
+QuestInputValidator questInputValidator(Ref ref) => const QuestInputValidator();
+
+/// Phase 7 write-side use cases — composed from the same repository/service
+/// singletons above, kept alive for the same reasons as
+/// [completeQuestUseCaseProvider].
+@Riverpod(keepAlive: true)
+CreateQuestUseCase createQuestUseCase(Ref ref) {
+  return CreateQuestUseCase(
+    questRepository: ref.watch(questRepositoryProvider),
+    idGenerator: ref.watch(idGeneratorProvider),
+    validator: ref.watch(questInputValidatorProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+UpdateQuestUseCase updateQuestUseCase(Ref ref) {
+  return UpdateQuestUseCase(
+    questRepository: ref.watch(questRepositoryProvider),
+    validator: ref.watch(questInputValidatorProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+DeleteQuestUseCase deleteQuestUseCase(Ref ref) {
+  return DeleteQuestUseCase(
+    questRepository: ref.watch(questRepositoryProvider),
+    questProgressRepository: ref.watch(questProgressRepositoryProvider),
   );
 }

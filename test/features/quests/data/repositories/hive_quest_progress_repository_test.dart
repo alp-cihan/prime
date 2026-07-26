@@ -189,6 +189,59 @@ void main() {
     },
   );
 
+  test('deleteAllForQuest removes every row for that quest, across dates, '
+      'and leaves other quests\' rows untouched', () async {
+    final box = await openBox();
+    final repo = HiveQuestProgressRepository(box);
+
+    await repo.upsert(
+      QuestProgress(
+        questId: 'q1',
+        date: DateTime.utc(2026, 1, 10),
+        progressValue: 1,
+        isComplete: true,
+      ),
+    );
+    await repo.upsert(
+      QuestProgress(
+        questId: 'q1',
+        date: DateTime.utc(2026, 1, 11),
+        progressValue: 1,
+        isComplete: true,
+      ),
+    );
+    await repo.upsert(
+      QuestProgress(
+        questId: 'q2',
+        date: DateTime.utc(2026, 1, 10),
+        progressValue: 1,
+        isComplete: true,
+      ),
+    );
+
+    await repo.deleteAllForQuest('q1');
+
+    expect(await repo.getForQuest('q1'), isEmpty);
+    expect(await repo.getForQuest('q2'), hasLength(1));
+  });
+
+  test('deleteAllForQuest for a quest with no rows is a no-op', () async {
+    final box = await openBox();
+    final repo = HiveQuestProgressRepository(box);
+    await repo.upsert(
+      QuestProgress(
+        questId: 'q2',
+        date: DateTime.utc(2026, 1, 10),
+        progressValue: 1,
+        isComplete: true,
+      ),
+    );
+
+    await repo.deleteAllForQuest('q1'); // never had any rows
+
+    expect(await repo.getForQuest('q2'), hasLength(1));
+  });
+
   test('persistence survives closing and reopening the box', () async {
     final box = await openBox();
     final repo = HiveQuestProgressRepository(box);

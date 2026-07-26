@@ -6,14 +6,21 @@ import '../tokens/app_spacing.dart';
 /// laid out with the app's spacing scale so every tab starts from the same
 /// restrained baseline.
 class PrimePageScaffold extends StatelessWidget {
-  const PrimePageScaffold({super.key, required this.title, this.body});
+  const PrimePageScaffold({
+    super.key,
+    required this.title,
+    this.body,
+    this.floatingActionButton,
+  });
 
   final String title;
   final Widget? body;
+  final Widget? floatingActionButton;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: floatingActionButton,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),

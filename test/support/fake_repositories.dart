@@ -24,6 +24,11 @@ class FakeQuestRepository implements QuestRepository {
   /// fake that would otherwise resolve within the same microtask flush.
   Completer<void>? getByIdGate;
 
+  /// Same idea as [getByIdGate], for Phase 7's create/update flows —
+  /// deterministically observes the form controller's loading state instead
+  /// of racing a fake that would otherwise resolve within one microtask.
+  Completer<void>? upsertGate;
+
   @override
   Future<List<Quest>> getAll() async => quests.values.toList();
 
@@ -40,13 +45,31 @@ class FakeQuestRepository implements QuestRepository {
 
   @override
   Future<void> upsert(Quest quest) async {
+    final gate = upsertGate;
+    if (gate != null) await gate.future;
     quests[quest.id] = quest;
+    _controller.notify(quests.values.toList());
+  }
+
+  @override
+  Future<void> deleteById(String id) async {
+    quests.remove(id);
     _controller.notify(quests.values.toList());
   }
 }
 
 class FakeQuestProgressRepository implements QuestProgressRepository {
   final List<QuestProgress> entries = [];
+
+  /// When set, [deleteAllForQuest] suspends on this before returning — lets
+  /// a test deterministically observe `DeleteQuestController`'s loading
+  /// state (it is the first repository call `DeleteQuestUseCase` makes
+  /// after loading the quest).
+  Completer<void>? deleteAllForQuestGate;
+
+  /// When set, [deleteAllForQuest] throws this instead of succeeding — lets
+  /// a test exercise `DeleteQuestController`'s error path deterministically.
+  Object? deleteAllForQuestError;
 
   @override
   Future<QuestProgress?> getForQuestAndDate(
@@ -69,6 +92,14 @@ class FakeQuestProgressRepository implements QuestProgressRepository {
       (e) => e.questId == progress.questId && _sameDate(e.date, progress.date),
     );
     entries.add(progress);
+  }
+
+  @override
+  Future<void> deleteAllForQuest(String questId) async {
+    final gate = deleteAllForQuestGate;
+    if (gate != null) await gate.future;
+    if (deleteAllForQuestError != null) throw deleteAllForQuestError!;
+    entries.removeWhere((e) => e.questId == questId);
   }
 
   bool _sameDate(DateTime a, DateTime b) =>
