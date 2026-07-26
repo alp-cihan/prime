@@ -18,7 +18,7 @@ Always read the relevant architecture sections before planning or implementing w
 - Dart
 - Riverpod with code generation
 - GoRouter
-- Hive for local-first storage
+- Hive CE for local-first storage
 - Supabase for remote synchronization
 - Clean Architecture
 - Material 3

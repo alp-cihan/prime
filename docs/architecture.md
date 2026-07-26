@@ -1,4 +1,4 @@
-# LIFE OS v2 — Architecture with Integrated RPG Progression System
+# Prime v2 — Architecture with Integrated RPG Progression System
 
 > "My real life is the game. My actions are quests. My consistency generates XP. My identity levels up."
 
@@ -57,7 +57,7 @@ All v1 principles hold, plus:
 ## 2. Revised Information Architecture
 
 ```
-LIFE OS
+PRIME
 │
 ├── Today (Home)                 — Player Header, Score, Main Quest, Daily Quests, Attribute Growth, Boss/Story card, Identity Evidence
 ├── Quests                        — replaces "Missions" tab
@@ -683,7 +683,7 @@ Following v1's pattern (`xRepositoryProvider → xUseCaseProviders → xControll
 ## 21. Revised Build Roadmap
 
 **Phase 0 — Foundation**
-Design tokens, `life_os_ui` component kit, GoRouter shell (5 tabs), Hive setup, dark theme.
+Design tokens, `core/design_system` primitives, GoRouter `StatefulShellRoute` (5 tabs), Hive CE setup, dark theme.
 
 **Phase 1 — Quest Core Loop + XP Ledger**
 `Quest`/`QuestProgress` data+domain+presentation, `XpTransaction` ledger (local, idempotency keys), `PlayerProfile` + `AttributeProgress` with real derived totals. *This phase is the entire game engine — get the ledger right here, everything else reads from it.*
