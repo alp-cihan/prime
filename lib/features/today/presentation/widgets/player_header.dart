@@ -50,16 +50,25 @@ class _PlayerHeaderContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Level ${summary.currentLevel}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium,
               ),
-              Text(
-                '${summary.totalXp} XP total',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.darkTextSecondary,
+              const SizedBox(width: AppSpacing.sm),
+              // Lifetime XP has no upper bound — this side must be allowed
+              // to shrink/truncate rather than overflow a narrow screen.
+              Expanded(
+                child: Text(
+                  '${summary.totalXp} XP total',
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.darkTextSecondary,
+                  ),
                 ),
               ),
             ],

@@ -68,6 +68,71 @@ class _QuestFormState extends ConsumerState<QuestForm> {
 
   bool get _isEditMode => widget.questId != null;
 
+  /// Whether the form currently differs from its starting point — in create
+  /// mode, whether anything meaningful has been typed; in edit mode, whether
+  /// any field differs from [widget.initialQuest]. Backs the unsaved-changes
+  /// guard below; recomputed fresh on every check rather than cached, since
+  /// it must reflect the current [TextEditingController]/dropdown state.
+  bool get _isDirty {
+    final initial = widget.initialQuest;
+    if (initial == null) {
+      return _titleController.text.trim().isNotEmpty ||
+          _descriptionController.text.trim().isNotEmpty;
+    }
+
+    final weights = <AttributeType, int>{
+      for (final row in _attributeRows)
+        row.type: int.tryParse(row.weightController.text.trim()) ?? 0,
+    };
+    final targetProgress = _progressType == ProgressType.binary
+        ? 1.0
+        : (double.tryParse(_targetProgressController.text.trim()) ?? 0.0);
+
+    if (_titleController.text != initial.title) return true;
+    if (_descriptionController.text != initial.description) return true;
+    if (_type != initial.type) return true;
+    if (_difficulty != initial.difficulty) return true;
+    if (_progressType != initial.progressType) return true;
+    if (targetProgress != initial.targetProgress) return true;
+    if (_repeatability != initial.repeatability) return true;
+    if (weights.length != initial.attributeXpWeights.length) return true;
+    for (final entry in weights.entries) {
+      if (initial.attributeXpWeights[entry.key] != entry.value) return true;
+    }
+    return false;
+  }
+
+  /// Shown only when a *user-initiated* back attempt (AppBar back arrow,
+  /// system/hardware back, browser back) is intercepted by [PopScope] below
+  /// while [_isDirty] — never on the form's own successful-submit navigation,
+  /// which calls `context.pop()`/`context.go()` directly and so bypasses
+  /// `Navigator.maybePop()` (the only path `PopScope.canPop` gates).
+  Future<bool> _confirmDiscard(BuildContext context) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text(
+          "You have unsaved changes. If you leave now, they won't be saved.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Keep Editing'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -141,158 +206,175 @@ class _QuestFormState extends ConsumerState<QuestForm> {
 
     final controllerState = ref.watch(questFormControllerProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-              maxLength: 100,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Title is required';
-                }
-                if (value.trim().length > 100) {
-                  return 'Title must be 100 characters or fewer';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLength: 500,
-              maxLines: 3,
-              validator: (value) {
-                if ((value ?? '').trim().length > 500) {
-                  return 'Description must be 500 characters or fewer';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            DropdownButtonFormField<QuestType>(
-              initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Quest type'),
-              items: [
-                for (final type in _selectableQuestTypes)
-                  DropdownMenuItem(
-                    value: type,
-                    child: Text(questTypeDisplayName(type)),
-                  ),
-              ],
-              onChanged: (next) {
-                if (next != null) setState(() => _type = next);
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            DifficultySelector(
-              value: _difficulty,
-              onChanged: (next) => setState(() => _difficulty = next),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            DropdownButtonFormField<ProgressType>(
-              initialValue: _progressType,
-              decoration: const InputDecoration(labelText: 'Progress type'),
-              items: [
-                for (final type in ProgressType.values)
-                  DropdownMenuItem(
-                    value: type,
-                    child: Text(progressTypeDisplayName(type)),
-                  ),
-              ],
-              onChanged: (next) {
-                if (next == null) return;
-                setState(() {
-                  _progressType = next;
-                  if (next == ProgressType.binary) {
-                    _targetProgressController.text = '1';
+    return PopScope<Object?>(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldDiscard = await _confirmDiscard(context);
+        if (shouldDiscard && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Title'),
+                maxLength: 100,
+                // Rebuilds on every keystroke so `_isDirty` (and therefore
+                // the unsaved-changes `PopScope` below) stays current — a
+                // `TextEditingController` update alone does not rebuild this
+                // widget.
+                onChanged: (_) => setState(() {}),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Title is required';
                   }
-                });
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _targetProgressController,
-              enabled: _progressType != ProgressType.binary,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+                  if (value.trim().length > 100) {
+                    return 'Title must be 100 characters or fewer';
+                  }
+                  return null;
+                },
               ),
-              decoration: const InputDecoration(labelText: 'Target progress'),
-              validator: (value) {
-                if (_progressType == ProgressType.binary) return null;
-                final parsed = double.tryParse(value?.trim() ?? '');
-                if (parsed == null || parsed <= 0) {
-                  return 'Enter a positive number';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AttributeAllocationEditor(
-              rows: _attributeRows,
-              onAttributeChanged: (index, type) =>
-                  setState(() => _attributeRows[index].type = type),
-              onWeightChanged: (index, rawValue) => setState(() {}),
-              onAdd: () => setState(() {
-                final unused = AttributeType.values.firstWhere(
-                  (type) => !_attributeRows.any((row) => row.type == type),
-                );
-                _attributeRows.add(AttributeAllocationRow(type: unused));
-              }),
-              onRemove: (index) => setState(() {
-                _attributeRows.removeAt(index).dispose();
-              }),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            DropdownButtonFormField<Repeatability>(
-              initialValue: _repeatability,
-              decoration: const InputDecoration(labelText: 'Repeats'),
-              items: [
-                for (final option in _repeatabilityOptions)
-                  DropdownMenuItem(
-                    value: option,
-                    child: Text(repeatabilityDisplayName(option)),
-                  ),
-              ],
-              onChanged: (next) {
-                if (next != null) setState(() => _repeatability = next);
-              },
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            if (controllerState.hasError) ...[
-              _FormError(failure: controllerState.error),
               const SizedBox(height: AppSpacing.sm),
-            ],
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: controllerState.isLoading ? null : _submit,
-                child: controllerState.isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(_isEditMode ? 'Save Changes' : 'Create Quest'),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLength: 500,
+                maxLines: 3,
+                onChanged: (_) => setState(() {}),
+                validator: (value) {
+                  if ((value ?? '').trim().length > 500) {
+                    return 'Description must be 500 characters or fewer';
+                  }
+                  return null;
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.sm),
+              DropdownButtonFormField<QuestType>(
+                initialValue: _type,
+                decoration: const InputDecoration(labelText: 'Quest type'),
+                items: [
+                  for (final type in _selectableQuestTypes)
+                    DropdownMenuItem(
+                      value: type,
+                      child: Text(questTypeDisplayName(type)),
+                    ),
+                ],
+                onChanged: (next) {
+                  if (next != null) setState(() => _type = next);
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              DifficultySelector(
+                value: _difficulty,
+                onChanged: (next) => setState(() => _difficulty = next),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              DropdownButtonFormField<ProgressType>(
+                initialValue: _progressType,
+                decoration: const InputDecoration(labelText: 'Progress type'),
+                items: [
+                  for (final type in ProgressType.values)
+                    DropdownMenuItem(
+                      value: type,
+                      child: Text(progressTypeDisplayName(type)),
+                    ),
+                ],
+                onChanged: (next) {
+                  if (next == null) return;
+                  setState(() {
+                    _progressType = next;
+                    if (next == ProgressType.binary) {
+                      _targetProgressController.text = '1';
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextFormField(
+                controller: _targetProgressController,
+                enabled: _progressType != ProgressType.binary,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: 'Target progress'),
+                onChanged: (_) => setState(() {}),
+                validator: (value) {
+                  if (_progressType == ProgressType.binary) return null;
+                  final parsed = double.tryParse(value?.trim() ?? '');
+                  if (parsed == null || parsed <= 0) {
+                    return 'Enter a positive number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AttributeAllocationEditor(
+                rows: _attributeRows,
+                onAttributeChanged: (index, type) =>
+                    setState(() => _attributeRows[index].type = type),
+                onWeightChanged: (index, rawValue) => setState(() {}),
+                onAdd: () => setState(() {
+                  final unused = AttributeType.values.firstWhere(
+                    (type) => !_attributeRows.any((row) => row.type == type),
+                  );
+                  _attributeRows.add(AttributeAllocationRow(type: unused));
+                }),
+                onRemove: (index) => setState(() {
+                  _attributeRows.removeAt(index).dispose();
+                }),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              DropdownButtonFormField<Repeatability>(
+                initialValue: _repeatability,
+                decoration: const InputDecoration(labelText: 'Repeats'),
+                items: [
+                  for (final option in _repeatabilityOptions)
+                    DropdownMenuItem(
+                      value: option,
+                      child: Text(repeatabilityDisplayName(option)),
+                    ),
+                ],
+                onChanged: (next) {
+                  if (next != null) setState(() => _repeatability = next);
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (controllerState.hasError) ...[
+                _FormError(failure: controllerState.error),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: controllerState.isLoading ? null : _submit,
+                  child: controllerState.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(_isEditMode ? 'Save Changes' : 'Create Quest'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

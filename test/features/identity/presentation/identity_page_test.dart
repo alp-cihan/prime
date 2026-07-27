@@ -209,4 +209,40 @@ void main() {
     );
     expect(find.widgetWithText(OutlinedButton, 'Retry'), findsOneWidget);
   });
+
+  testWidgets(
+    'renders a populated profile without overflow on a narrow phone viewport',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 690); // a small phone
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final ledger = FakeXpLedgerRepository()
+        ..byKey['a'] = _questTx(
+          'q1',
+          '2026-01-10',
+          attribute: AttributeType.health,
+          finalXp: 60000,
+        )
+        ..byKey['b'] = _questTx(
+          'q1',
+          '2026-01-10',
+          attribute: AttributeType.strength,
+          finalXp: 20000,
+        );
+      final unlocks = FakeAchievementUnlockRepository()
+        ..unlocks['first_step'] = AchievementUnlock(
+          achievementId: 'first_step',
+          unlockedAt: DateTime.utc(2026, 1, 10),
+        );
+
+      await tester.pumpWidget(
+        _harness(_overrides(ledger: ledger, unlocks: unlocks)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

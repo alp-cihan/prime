@@ -190,4 +190,123 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  group('nested routes under You keep the You tab selected', () {
+    const youTabIndex = 4;
+
+    Future<void> pumpAppAt(WidgetTester tester, String location) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(context).go(location);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('/you/achievements keeps the You tab highlighted', (
+      tester,
+    ) async {
+      await pumpAppAt(tester, '/you/achievements');
+
+      expect(find.widgetWithText(AppBar, 'Achievements'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        youTabIndex,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('/you/chains keeps the You tab highlighted', (tester) async {
+      await pumpAppAt(tester, '/you/chains');
+
+      expect(find.widgetWithText(AppBar, 'Chains'), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        youTabIndex,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('/you/identity keeps the You tab highlighted', (tester) async {
+      await pumpAppAt(tester, '/you/identity');
+
+      expect(find.widgetWithText(AppBar, 'Identity'), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        youTabIndex,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'the AppBar back button from /you/achievements returns to the You '
+      'summary, not a dead end',
+      (tester) async {
+        await pumpAppAt(tester, '/you/achievements');
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.textContaining('Level'), findsWidgets);
+        expect(find.byType(NavigationBar), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
+
+  group('Story and Journal placeholders', () {
+    testWidgets('Story shows a restrained empty state, not a bare screen', (
+      tester,
+    ) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.auto_stories_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('still being written'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Journal shows a restrained empty state, not a bare screen', (
+      tester,
+    ) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.book_outlined));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('coming soon'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

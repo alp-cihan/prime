@@ -368,4 +368,170 @@ void main() {
       expect(find.text('detail:q1'), findsOneWidget);
     });
   });
+
+  group('unsaved changes', () {
+    testWidgets(
+      'an untouched create form has nothing to confirm on back navigation',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository(),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        _growViewport(tester);
+        await tester.pumpWidget(_harness(overrides));
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('quest-list'), findsOneWidget);
+        expect(find.text('Discard changes?'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a dirty create form confirms before discarding, and "Keep Editing" '
+      'preserves the entered title',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository(),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        _growViewport(tester);
+        await tester.pumpWidget(_harness(overrides));
+        await tester.pumpAndSettle();
+
+        await _enterTitle(tester, 'Half-written quest');
+        await tester.pump();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(find.text('quest-list'), findsNothing); // still on the form
+
+        await tester.tap(find.widgetWithText(TextButton, 'Keep Editing'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsNothing);
+        expect(
+          tester
+              .widget<TextFormField>(
+                find.widgetWithText(TextFormField, 'Title'),
+              )
+              .controller!
+              .text,
+          'Half-written quest', // preserved, not cleared
+        );
+      },
+    );
+
+    testWidgets('confirming "Discard" on a dirty create form navigates away', (
+      tester,
+    ) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      _growViewport(tester);
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      await _enterTitle(tester, 'Half-written quest');
+      await tester.pump();
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('quest-list'), findsOneWidget);
+    });
+
+    testWidgets(
+      'an edit form with no changes has nothing to confirm on back navigation',
+      (tester) async {
+        final questRepository = FakeQuestRepository()
+          ..quests['q1'] = _buildQuest();
+        final overrides = fakeProviderOverrides(
+          questRepository: questRepository,
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        _growViewport(tester);
+        await tester.pumpWidget(_harness(overrides, questId: 'q1'));
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('detail:q1'), findsOneWidget);
+        expect(find.text('Discard changes?'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'editing a field on the edit form requires confirmation to leave',
+      (tester) async {
+        final questRepository = FakeQuestRepository()
+          ..quests['q1'] = _buildQuest();
+        final overrides = fakeProviderOverrides(
+          questRepository: questRepository,
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        _growViewport(tester);
+        await tester.pumpWidget(_harness(overrides, questId: 'q1'));
+        await tester.pumpAndSettle();
+
+        await _enterTitle(tester, 'Workout (renamed)');
+        await tester.pump();
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(find.text('detail:q1'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a successful submit navigates away without an unsaved-changes prompt',
+      (tester) async {
+        final questRepository = FakeQuestRepository();
+        final overrides = fakeProviderOverrides(
+          questRepository: questRepository,
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        _growViewport(tester);
+        await tester.pumpWidget(_harness(overrides));
+        await tester.pumpAndSettle();
+
+        await _enterTitle(tester, 'Morning Run');
+        await _enterWeight(tester, '50');
+        await tester.tap(find.widgetWithText(FilledButton, 'Create Quest'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsNothing);
+        expect(questRepository.quests.length, 1);
+      },
+    );
+  });
 }

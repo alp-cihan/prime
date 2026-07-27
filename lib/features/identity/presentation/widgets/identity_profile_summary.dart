@@ -26,16 +26,27 @@ class IdentityProfileSummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Level ${snapshot.currentLevel}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineSmall,
               ),
-              Text(
-                '${snapshot.lifetimeXp} XP',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.accent,
+              const SizedBox(width: AppSpacing.sm),
+              // A long-time player's lifetime XP has no upper bound, so this
+              // is the one side of the row that must be allowed to shrink
+              // (and, in the extreme, truncate) rather than push the row
+              // past a narrow screen's width.
+              Expanded(
+                child: Text(
+                  '${snapshot.lifetimeXp} XP',
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: AppColors.accent,
+                  ),
                 ),
               ),
             ],

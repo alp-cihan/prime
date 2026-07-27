@@ -25,16 +25,26 @@ class AttributeXpTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             attributeDisplayName(attribute),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium,
           ),
-          Text(
-            '$xp XP',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: AppSpacing.sm),
+          // An attribute's lifetime XP has no upper bound — this side must
+          // be allowed to shrink/truncate rather than overflow a narrow
+          // screen.
+          Expanded(
+            child: Text(
+              '$xp XP',
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

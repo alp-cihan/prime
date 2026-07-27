@@ -214,4 +214,32 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'a very long quest title renders without overflow on a narrow phone '
+    'viewport',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 690); // a small phone
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final longTitle =
+          'Read a full chapter of a very long book about distributed '
+          'systems every single morning before work';
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest(id: 'q1', title: longTitle);
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

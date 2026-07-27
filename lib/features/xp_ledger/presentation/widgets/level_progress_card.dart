@@ -36,16 +36,25 @@ class LevelProgressCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Level ${levelProgress.level}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineMedium,
               ),
-              Text(
-                '$totalXp XP total',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.darkTextSecondary,
+              const SizedBox(width: AppSpacing.sm),
+              // Lifetime XP has no upper bound — this side must be allowed
+              // to shrink/truncate rather than overflow a narrow screen.
+              Expanded(
+                child: Text(
+                  '$totalXp XP total',
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.darkTextSecondary,
+                  ),
                 ),
               ),
             ],
