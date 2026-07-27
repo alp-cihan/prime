@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../quests/domain/entities/quest.dart';
+import '../../../quests/domain/entities/quest_progress.dart';
 import '../../../quests/presentation/providers/quest_query_providers.dart';
 import '../../../quests/presentation/providers/quest_repository_providers.dart';
 import '../providers/today_dashboard_providers.dart';
@@ -48,7 +49,8 @@ class _FeaturedQuestContent extends ConsumerWidget {
     final progressAsync = ref.watch(
       questProgressForDateProvider(quest.id, today),
     );
-    final completedToday = progressAsync.value?.isComplete ?? false;
+    final progress = progressAsync.value;
+    final completedToday = progress?.isComplete ?? false;
     final baseXp = quest.attributeXpWeights.values.fold<int>(
       0,
       (sum, value) => sum + value,
@@ -73,7 +75,12 @@ class _FeaturedQuestContent extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(quest.title, style: theme.textTheme.titleMedium),
+              Text(
+                quest.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.sm,
@@ -84,12 +91,83 @@ class _FeaturedQuestContent extends ConsumerWidget {
                   if (completedToday) const _Chip(label: 'Completed today'),
                 ],
               ),
+              if (quest.progressType != ProgressType.binary) ...[
+                const SizedBox(height: AppSpacing.sm),
+                _FeaturedQuestProgress(quest: quest, progress: progress),
+              ],
+              const SizedBox(height: AppSpacing.sm),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _ctaLabel(quest, completedToday),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: AppColors.accent,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  String _ctaLabel(Quest quest, bool completedToday) {
+    if (completedToday) return 'View';
+    switch (quest.progressType) {
+      case ProgressType.binary:
+        return 'Complete';
+      case ProgressType.quantity:
+        return 'Add Progress';
+      case ProgressType.duration:
+        return 'Continue';
+    }
+  }
+}
+
+/// Compact quantity/duration readout — mirrors `QuestCard`'s
+/// `_CompactProgress`, kept local since it's the only other place Today
+/// shows a featured quest's live progress.
+class _FeaturedQuestProgress extends StatelessWidget {
+  const _FeaturedQuestProgress({required this.quest, required this.progress});
+
+  final Quest quest;
+  final QuestProgress? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final current = progress?.progressValue ?? 0.0;
+    final target = quest.targetProgress;
+    final ratio = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
+    final unit = quest.progressType == ProgressType.duration ? ' min' : '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${_formatValue(current)}$unit / ${_formatValue(target)}$unit',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppColors.darkTextSecondary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: ratio,
+            minHeight: 4,
+            backgroundColor: AppColors.darkSurfaceRaised,
+            valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatValue(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(1);
 }
 
 class _NoFeaturedQuest extends StatelessWidget {

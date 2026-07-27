@@ -8,12 +8,17 @@ import '../../../core/router/app_routes.dart';
 import '../../xp_ledger/presentation/providers/xp_ledger_providers.dart';
 import '../application/models/complete_quest_command.dart';
 import '../application/models/complete_quest_result.dart';
+import '../application/models/update_quest_progress_result.dart';
 import '../domain/entities/quest.dart';
+import '../domain/entities/quest_progress.dart';
 import 'providers/complete_quest_controller.dart';
 import 'providers/delete_quest_controller.dart';
+import 'providers/quest_progress_controller.dart';
 import 'providers/quest_query_providers.dart';
 import 'providers/quest_repository_providers.dart';
 import 'widgets/complete_quest_button.dart';
+import 'widgets/duration_quest_controls.dart';
+import 'widgets/quantity_quest_controls.dart';
 import 'widgets/quest_progress_summary.dart';
 
 /// Quest detail screen — `/quests/:questId`, pushed onto the quests branch's
@@ -33,13 +38,15 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
   @override
   void initState() {
     super.initState();
-    // `deleteQuestControllerProvider` is a single shared, keepAlive
-    // controller — without this, a previous quest's failed-deletion error
-    // (or a stale success) would otherwise still be sitting there the first
-    // time *this* quest's detail page reads it.
-    Future.microtask(
-      () => ref.read(deleteQuestControllerProvider.notifier).reset(),
-    );
+    // `deleteQuestControllerProvider`/`questProgressControllerProvider` are
+    // single shared, keepAlive controllers — without this, a previous
+    // quest's failed deletion (or a stale quantity/duration mutation
+    // result) would otherwise still be sitting there the first time *this*
+    // quest's detail page reads it.
+    Future.microtask(() {
+      ref.read(deleteQuestControllerProvider.notifier).reset();
+      ref.read(questProgressControllerProvider.notifier).reset();
+    });
   }
 
   @override
@@ -70,6 +77,36 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
       },
     );
 
+    // Same shape as the completeQuestControllerProvider listener above, for
+    // the quantity/duration mutation path — fires the same-format success
+    // message only when *this* mutation was the one that newly completed
+    // the quest (see UpdateQuestProgressUseCase's doc for that guarantee),
+    // so a plain increment/decrement that doesn't reach the target never
+    // shows it.
+    ref.listen<AsyncValue<UpdateQuestProgressResult?>>(
+      questProgressControllerProvider,
+      (previous, next) {
+        final result = next.value;
+        if (next.hasValue &&
+            result != null &&
+            result.completed &&
+            result.completionResult != null) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Quest completed — '
+                '+${result.completionResult!.totalXpAwarded} XP',
+              ),
+            ),
+          );
+        } else if (next.hasError) {
+          debugPrint('Quest progress update failed: ${next.error}');
+        }
+      },
+    );
+
     ref.listen<AsyncValue<bool>>(deleteQuestControllerProvider, (
       previous,
       next,
@@ -87,7 +124,11 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(questAsync.value?.title ?? 'Quest'),
+        title: Text(
+          questAsync.value?.title ?? 'Quest',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             onPressed: deleteState.isLoading
@@ -176,7 +217,6 @@ class _QuestDetailBody extends ConsumerWidget {
     final transactionsAsync = ref.watch(
       xpTransactionsForQuestAndDateProvider(quest.id, today),
     );
-    final controllerState = ref.watch(completeQuestControllerProvider);
     final baseXp = quest.attributeXpWeights.values.fold<int>(
       0,
       (sum, value) => sum + value,
@@ -198,19 +238,85 @@ class _QuestDetailBody extends ConsumerWidget {
             isLoading: progressAsync.isLoading || transactionsAsync.isLoading,
           ),
           const SizedBox(height: AppSpacing.lg),
-          CompleteQuestButton(
-            isLoading: controllerState.isLoading,
-            onPressed: () => _complete(ref),
-          ),
-          if (controllerState.hasError) ...[
-            const SizedBox(height: AppSpacing.sm),
-            _CompletionError(
-              failure: controllerState.error,
-              onRetry: () => _complete(ref),
-            ),
-          ],
+          _ProgressControls(quest: quest, progress: progressAsync.value),
         ],
       ),
+    );
+  }
+}
+
+/// Renders the interaction appropriate to [quest.progressType] — binary
+/// keeps the existing `CompleteQuestButton`/`CompleteQuestController` pair
+/// unchanged (already tested since Phase 5); quantity/duration go through
+/// the new `QuestProgressController`.
+class _ProgressControls extends ConsumerWidget {
+  const _ProgressControls({required this.quest, required this.progress});
+
+  final Quest quest;
+  final QuestProgress? progress;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    switch (quest.progressType) {
+      case ProgressType.binary:
+        return _BinaryControls(quest: quest, progress: progress);
+      case ProgressType.quantity:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            QuantityQuestControls(quest: quest, progress: progress),
+            _ProgressOperationError(),
+          ],
+        );
+      case ProgressType.duration:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DurationQuestControls(quest: quest, progress: progress),
+            _ProgressOperationError(),
+          ],
+        );
+    }
+  }
+}
+
+/// Binary quests jump straight from "not completed" to "completed" — once
+/// [progress]`.isComplete` is true today, the Complete button is replaced
+/// entirely (not just disabled) so an accidental extra tap has nothing to
+/// hit. `CompleteQuestUseCase` itself does not refuse a repeat completion
+/// (docs/architecture.md §3.3's diminishing-returns model deliberately
+/// allows same-day repeats for quests that call it more than once) — this
+/// is a UI-level guard against *accidental* re-completion, not a new domain
+/// rule.
+class _BinaryControls extends ConsumerWidget {
+  const _BinaryControls({required this.quest, required this.progress});
+
+  final Quest quest;
+  final QuestProgress? progress;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final completedToday = progress?.isComplete ?? false;
+    if (completedToday) {
+      return const _CompletedBinaryIndicator();
+    }
+
+    final controllerState = ref.watch(completeQuestControllerProvider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CompleteQuestButton(
+          isLoading: controllerState.isLoading,
+          onPressed: () => _complete(ref),
+        ),
+        if (controllerState.hasError) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _CompletionError(
+            failure: controllerState.error,
+            onRetry: () => _complete(ref),
+          ),
+        ],
+      ],
     );
   }
 
@@ -222,6 +328,90 @@ class _QuestDetailBody extends ConsumerWidget {
       progressValue: quest.targetProgress,
     );
     ref.read(completeQuestControllerProvider.notifier).complete(command);
+  }
+}
+
+class _CompletedBinaryIndicator extends StatelessWidget {
+  const _CompletedBinaryIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.darkSurfaceRaised,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.check_circle, color: AppColors.accent),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            // Deliberately not "Completed today" — QuestProgressSummary
+            // above already uses that exact string as a stat *label*
+            // (present regardless of completion state), and this is a
+            // separate, unconditional-on-this-screen status indicator.
+            'Quest complete for today',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: AppColors.accent),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shared error banner for quantity/duration progress mutations — unlike
+/// binary's [_CompletionError] (which retries the exact same action), a
+/// failed increment/decrement has no single obvious action to retry, so
+/// this just surfaces the message and lets the user dismiss it and try the
+/// control again directly.
+class _ProgressOperationError extends ConsumerWidget {
+  const _ProgressOperationError();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(questProgressControllerProvider);
+    if (!state.hasError) return const SizedBox.shrink();
+
+    final failure = state.error;
+    final message = failure is Failure
+        ? failure.message
+        : 'Something went wrong. Please try again.';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.darkSurfaceRaised,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.darkBorder),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                message,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.darkTextSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () =>
+                  ref.read(questProgressControllerProvider.notifier).reset(),
+              child: const Text('Dismiss'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -25,4 +25,11 @@ abstract final class HiveKeys {
   /// `(questId, date)` — every attribute row of every completion that day.
   static String xpSourceIdDatePrefix(String questId, DateTime normalizedDate) =>
       '$questId|${dateKey(normalizedDate)}|';
+
+  /// Prefix shared by every `XpTransaction.sourceId` ever written for
+  /// [questId], across all dates — used to answer "has this quest ever
+  /// earned XP" from the ledger itself (the only append-only, non-mutable
+  /// history), rather than from `QuestProgress`, which is upserted per day
+  /// and can be overwritten by a later progress decrement.
+  static String xpSourceIdQuestPrefix(String questId) => '$questId|';
 }

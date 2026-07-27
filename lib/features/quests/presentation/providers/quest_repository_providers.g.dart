@@ -559,3 +559,114 @@ final class DeleteQuestUseCaseProvider
 
 String _$deleteQuestUseCaseHash() =>
     r'3573795b07b45a69ff47a791ac91b019c5be52ce';
+
+@ProviderFor(questProgressPolicy)
+final questProgressPolicyProvider = QuestProgressPolicyProvider._();
+
+final class QuestProgressPolicyProvider
+    extends
+        $FunctionalProvider<
+          QuestProgressPolicy,
+          QuestProgressPolicy,
+          QuestProgressPolicy
+        >
+    with $Provider<QuestProgressPolicy> {
+  QuestProgressPolicyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'questProgressPolicyProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$questProgressPolicyHash();
+
+  @$internal
+  @override
+  $ProviderElement<QuestProgressPolicy> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  QuestProgressPolicy create(Ref ref) {
+    return questProgressPolicy(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(QuestProgressPolicy value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<QuestProgressPolicy>(value),
+    );
+  }
+}
+
+String _$questProgressPolicyHash() =>
+    r'1c23c1133e80a2450986deddb06797dfe29cc54c';
+
+/// Phase 8's progress-mutation use case — composed from the same
+/// repository singletons plus [completeQuestUseCaseProvider], which it
+/// delegates every completion to (see that use case's own doc for why it
+/// never awards XP itself).
+
+@ProviderFor(updateQuestProgressUseCase)
+final updateQuestProgressUseCaseProvider =
+    UpdateQuestProgressUseCaseProvider._();
+
+/// Phase 8's progress-mutation use case — composed from the same
+/// repository singletons plus [completeQuestUseCaseProvider], which it
+/// delegates every completion to (see that use case's own doc for why it
+/// never awards XP itself).
+
+final class UpdateQuestProgressUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateQuestProgressUseCase,
+          UpdateQuestProgressUseCase,
+          UpdateQuestProgressUseCase
+        >
+    with $Provider<UpdateQuestProgressUseCase> {
+  /// Phase 8's progress-mutation use case — composed from the same
+  /// repository singletons plus [completeQuestUseCaseProvider], which it
+  /// delegates every completion to (see that use case's own doc for why it
+  /// never awards XP itself).
+  UpdateQuestProgressUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateQuestProgressUseCaseProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateQuestProgressUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateQuestProgressUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateQuestProgressUseCase create(Ref ref) {
+    return updateQuestProgressUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateQuestProgressUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateQuestProgressUseCase>(value),
+    );
+  }
+}
+
+String _$updateQuestProgressUseCaseHash() =>
+    r'fbdf78c3dec6b24c6297f1e4413d03fb1a1880fc';

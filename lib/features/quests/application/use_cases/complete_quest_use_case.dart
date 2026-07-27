@@ -49,6 +49,18 @@ import '../models/complete_quest_result.dart';
 /// keys" contract makes that retry a no-op. `XpTransaction.id` reuses the
 /// idempotency key — it is already a unique, deterministic string for this
 /// row, so generating a separate random id would add nothing.
+///
+/// ## Non-repeatable completion is gated for the quest's whole lifetime
+/// A quest with `repeatabilityRule == null` may earn completion XP at most
+/// once, ever — reached via any path (a fresh completion, or re-reaching
+/// the target after a Phase 8 progress decrement, same day or a later day).
+/// This is checked here, in the one place that ever writes XP, rather than
+/// in `UpdateQuestProgressUseCase`, precisely so every caller (binary
+/// complete, quantity/duration auto-complete) is protected uniformly. The
+/// check reads [XpLedgerRepository.getTransactionsForQuest] — the ledger,
+/// not `QuestProgress` — because ledger rows are append-only while
+/// `QuestProgress` is upserted per day and can have `isComplete` rewritten
+/// back to `false` by a later decrement.
 class CompleteQuestUseCase {
   const CompleteQuestUseCase({
     required QuestRepository questRepository,
@@ -107,10 +119,45 @@ class CompleteQuestUseCase {
         .toSet()
         .length;
 
-    // 7. Determine first-completion-ever and the consecutive-day streak from
-    // this quest's full progress history — also never from caller input.
+    // 6b. Lifetime ledger history for this quest — the append-only source
+    // of truth for "has this quest ever earned completion XP". Deliberately
+    // read from the ledger, not from QuestProgress: progress rows are
+    // upserted per day and a later decrement can rewrite a day's
+    // `isComplete` back to false, which would make a progress-history-based
+    // check forget a completion that already paid out. See
+    // `HiveKeys.xpSourceIdQuestPrefix` for why the ledger doesn't have this
+    // problem.
+    final priorTransactionsForQuest = await _xpLedgerRepository
+        .getTransactionsForQuest(quest.id);
+    final hasEverBeenAwardedXp = priorTransactionsForQuest.isNotEmpty;
+    final isFirstCompletionEver = !hasEverBeenAwardedXp;
+
+    // 6c. A quest with no `repeatabilityRule` is one-time: once it has ever
+    // earned XP, it can never earn XP again, regardless of same-day
+    // decrements or later-day re-attempts. This is the only repeatability
+    // signal currently wired to anything in the domain model (the create/
+    // edit form's "Repeats" field writes it, and nothing else — see
+    // `QuestType.repeatable`'s doc comment — expresses an occurrence rule).
+    // A `repeatabilityRule` of `daily` is intentionally left ungated here:
+    // the existing per-day `repeatIndexToday`/diminishing-returns mechanism
+    // (docs/architecture.md §3.3) already prices repeats within one day,
+    // and a new calendar day is a genuinely new, already-safely-modeled
+    // occurrence. `weekly` has no enforced occurrence boundary anywhere in
+    // this codebase (no week-start/last-occurrence concept exists), so it
+    // is also left ungated rather than inventing one — see the Phase 8
+    // correction report for why this is flagged, not fixed.
+    if (quest.repeatabilityRule == null && hasEverBeenAwardedXp) {
+      return Err(
+        InvalidStateFailure(
+          'Quest "${quest.id}" is not repeatable and has already been '
+          'completed — it cannot be rewarded again.',
+        ),
+      );
+    }
+
+    // 7. Determine the consecutive-day streak from this quest's full
+    // progress history.
     final history = await _questProgressRepository.getForQuest(quest.id);
-    final isFirstCompletionEver = !history.any((p) => p.isComplete);
     final consecutiveDayStreak = _consecutiveDayStreak(history, date);
 
     final completionRatio = quest.progressType == ProgressType.binary

@@ -16,6 +16,7 @@ import '../../../../support/provider_test_support.dart';
 Quest _buildQuest({
   String id = 'q1',
   QuestCompletionState state = QuestCompletionState.notStarted,
+  String? repeatabilityRule,
 }) {
   return Quest(
     id: id,
@@ -34,6 +35,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
+    repeatabilityRule: repeatabilityRule,
   );
 }
 
@@ -318,7 +320,11 @@ void main() {
     () async {
       final container = await buildTestContainer();
       addTearDown(container.dispose);
-      final quest = _buildQuest();
+      // repeatabilityRule: 'daily' — completing the same quest twice is
+      // only allowed for a repeatable quest; a non-repeatable quest is
+      // covered separately by complete_quest_use_case_test.dart's
+      // "non-repeatable quest lifetime gating" group.
+      final quest = _buildQuest(repeatabilityRule: 'daily');
       await container.read(questRepositoryProvider).upsert(quest);
       final command = CompleteQuestCommand(
         questId: quest.id,

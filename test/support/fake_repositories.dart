@@ -71,6 +71,12 @@ class FakeQuestProgressRepository implements QuestProgressRepository {
   /// a test exercise `DeleteQuestController`'s error path deterministically.
   Object? deleteAllForQuestError;
 
+  /// When set, [upsert] suspends on this before returning — lets a test
+  /// deterministically observe `QuestProgressController`'s loading state
+  /// for a non-completing increment/decrement (the use case's only
+  /// repository write on that path).
+  Completer<void>? upsertGate;
+
   @override
   Future<QuestProgress?> getForQuestAndDate(
     String questId,
@@ -88,6 +94,8 @@ class FakeQuestProgressRepository implements QuestProgressRepository {
 
   @override
   Future<void> upsert(QuestProgress progress) async {
+    final gate = upsertGate;
+    if (gate != null) await gate.future;
     entries.removeWhere(
       (e) => e.questId == progress.questId && _sameDate(e.date, progress.date),
     );
@@ -122,6 +130,12 @@ class FakeXpLedgerRepository implements XpLedgerRepository {
     DateTime date,
   ) async {
     final prefix = '$questId|${_dateKey(date)}|';
+    return byKey.values.where((t) => t.sourceId.startsWith(prefix)).toList();
+  }
+
+  @override
+  Future<List<XpTransaction>> getTransactionsForQuest(String questId) async {
+    final prefix = '$questId|';
     return byKey.values.where((t) => t.sourceId.startsWith(prefix)).toList();
   }
 

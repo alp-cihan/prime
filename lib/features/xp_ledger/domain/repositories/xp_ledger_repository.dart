@@ -11,6 +11,15 @@ abstract class XpLedgerRepository {
     DateTime date,
   );
 
+  /// Every transaction ever recorded for [questId], across all dates —
+  /// the append-only source of truth for "has this quest ever earned
+  /// completion XP," used to gate non-repeatable quests against being
+  /// rewarded more than once in their lifetime. Unlike `QuestProgress`
+  /// (which is upserted per day and can be overwritten by a later
+  /// decrement), ledger rows are never deleted or rewritten, so this is
+  /// safe to use as a lifetime completion check.
+  Future<List<XpTransaction>> getTransactionsForQuest(String questId);
+
   /// Every transaction recorded on [date], across all quests — the Today
   /// dashboard's "activity today" view. [date] must already be
   /// UTC-date-normalized, same convention as [getTransactionsForQuestAndDate].

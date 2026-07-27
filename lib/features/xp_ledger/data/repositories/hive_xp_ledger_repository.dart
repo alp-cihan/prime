@@ -51,6 +51,18 @@ class HiveXpLedgerRepository implements XpLedgerRepository {
   }
 
   @override
+  Future<List<XpTransaction>> getTransactionsForQuest(String questId) async {
+    final prefix = HiveKeys.xpSourceIdQuestPrefix(questId);
+    final matches =
+        _box.values
+            .where((model) => model.sourceId.startsWith(prefix))
+            .map(_mapper.toDomain)
+            .toList()
+          ..sort(_byCreatedAtThenKey);
+    return matches;
+  }
+
+  @override
   Future<List<XpTransaction>> getTransactionsForDate(DateTime date) async {
     final normalized = DateTime.utc(date.year, date.month, date.day);
     final dateKey = HiveKeys.dateKey(normalized);

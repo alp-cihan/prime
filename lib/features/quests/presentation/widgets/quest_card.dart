@@ -28,7 +28,6 @@ class QuestCard extends StatelessWidget {
       (sum, value) => sum + value,
     );
     final primaryAttribute = _primaryAttribute(quest.attributeXpWeights);
-    final completedToday = todayProgress?.isComplete ?? false;
 
     return Material(
       color: AppColors.darkSurface,
@@ -45,7 +44,12 @@ class QuestCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(quest.title, style: theme.textTheme.titleMedium),
+                    Text(
+                      quest.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
                     if (quest.description.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xs),
                       Text(
@@ -70,15 +74,10 @@ class QuestCard extends StatelessWidget {
                           _Chip(label: attributeDisplayName(primaryAttribute)),
                       ],
                     ),
-                    if (completedToday) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        'Completed today',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: AppColors.accent,
-                        ),
-                      ),
-                    ],
+                    _CompactProgress(
+                      quest: quest,
+                      todayProgress: todayProgress,
+                    ),
                   ],
                 ),
               ),
@@ -96,6 +95,69 @@ class QuestCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Compact, non-interactive progress readout for the quest list/Today rows
+/// — full increment/decrement controls only ever live on the detail page
+/// (Phase 8 scope). Binary shows the existing "Completed today" text (or
+/// nothing); quantity/duration show a "current / target" line plus a thin
+/// progress bar.
+class _CompactProgress extends StatelessWidget {
+  const _CompactProgress({required this.quest, required this.todayProgress});
+
+  final Quest quest;
+  final QuestProgress? todayProgress;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (quest.progressType == ProgressType.binary) {
+      final completedToday = todayProgress?.isComplete ?? false;
+      if (!completedToday) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.xs),
+        child: Text(
+          'Completed today',
+          style: theme.textTheme.labelSmall?.copyWith(color: AppColors.accent),
+        ),
+      );
+    }
+
+    final current = todayProgress?.progressValue ?? 0.0;
+    final target = quest.targetProgress;
+    final ratio = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
+    final unit = quest.progressType == ProgressType.duration ? ' min' : '';
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${_formatValue(current)}$unit / ${_formatValue(target)}$unit',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.darkTextSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 4,
+              backgroundColor: AppColors.darkSurfaceRaised,
+              valueColor: const AlwaysStoppedAnimation(AppColors.accent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatValue(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(1);
 }
 
 AttributeType? _primaryAttribute(Map<AttributeType, int> weights) {

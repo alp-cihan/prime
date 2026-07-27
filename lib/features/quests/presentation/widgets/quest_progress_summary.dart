@@ -89,12 +89,17 @@ class _StatRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.darkTextSecondary,
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.darkTextSecondary,
+            ),
           ),
         ),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           value,
           style: theme.textTheme.bodyMedium?.copyWith(

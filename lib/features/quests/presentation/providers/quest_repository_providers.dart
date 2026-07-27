@@ -7,12 +7,14 @@ import '../../application/id_generator.dart';
 import '../../application/use_cases/complete_quest_use_case.dart';
 import '../../application/use_cases/create_quest_use_case.dart';
 import '../../application/use_cases/delete_quest_use_case.dart';
+import '../../application/use_cases/update_quest_progress_use_case.dart';
 import '../../application/use_cases/update_quest_use_case.dart';
 import '../../data/repositories/hive_quest_progress_repository.dart';
 import '../../data/repositories/hive_quest_repository.dart';
 import '../../domain/repositories/quest_progress_repository.dart';
 import '../../domain/repositories/quest_repository.dart';
 import '../../domain/services/quest_input_validator.dart';
+import '../../domain/services/quest_progress_policy.dart';
 import '../../domain/services/quest_xp_calculator.dart';
 
 part 'quest_repository_providers.g.dart';
@@ -91,5 +93,22 @@ DeleteQuestUseCase deleteQuestUseCase(Ref ref) {
   return DeleteQuestUseCase(
     questRepository: ref.watch(questRepositoryProvider),
     questProgressRepository: ref.watch(questProgressRepositoryProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+QuestProgressPolicy questProgressPolicy(Ref ref) => const QuestProgressPolicy();
+
+/// Phase 8's progress-mutation use case — composed from the same
+/// repository singletons plus [completeQuestUseCaseProvider], which it
+/// delegates every completion to (see that use case's own doc for why it
+/// never awards XP itself).
+@Riverpod(keepAlive: true)
+UpdateQuestProgressUseCase updateQuestProgressUseCase(Ref ref) {
+  return UpdateQuestProgressUseCase(
+    questRepository: ref.watch(questRepositoryProvider),
+    questProgressRepository: ref.watch(questProgressRepositoryProvider),
+    completeQuestUseCase: ref.watch(completeQuestUseCaseProvider),
+    policy: ref.watch(questProgressPolicyProvider),
   );
 }

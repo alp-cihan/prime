@@ -38,6 +38,12 @@ Quest _buildQuest() {
     prerequisiteQuestIds: [],
     state: QuestCompletionState.notStarted,
     failureBehavior: FailureBehavior.expire,
+    // 'daily' — this test completes the same quest twice on the same day
+    // (a genuine second completion, not a raw retry), which only a
+    // repeatable quest is allowed to do. See
+    // complete_quest_use_case_test.dart's "non-repeatable quest lifetime
+    // gating" group for the null-repeatabilityRule, one-time case.
+    repeatabilityRule: 'daily',
   );
 }
 
