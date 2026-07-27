@@ -95,7 +95,7 @@ final class AchievementEvaluationControllerProvider
 }
 
 String _$achievementEvaluationControllerHash() =>
-    r'ccfc3712ba8060ba097d6d3200327f4ce52d2974';
+    r'e93e5d95a9fda21d1baf3a6ceefe59841ceb3708';
 
 /// Triggers achievement evaluation after the two quest-completion paths this
 /// app has (binary, via [completeQuestControllerProvider]; quantity/

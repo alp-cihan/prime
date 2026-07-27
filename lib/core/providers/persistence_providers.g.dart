@@ -232,3 +232,51 @@ final class AchievementUnlockHiveBoxProvider
 
 String _$achievementUnlockHiveBoxHash() =>
     r'f59a23aad21f96aad47d6552a35cb16fdd65a9dc';
+
+@ProviderFor(chainProgressHiveBox)
+final chainProgressHiveBoxProvider = ChainProgressHiveBoxProvider._();
+
+final class ChainProgressHiveBoxProvider
+    extends
+        $FunctionalProvider<
+          Box<ChainProgressHiveModel>,
+          Box<ChainProgressHiveModel>,
+          Box<ChainProgressHiveModel>
+        >
+    with $Provider<Box<ChainProgressHiveModel>> {
+  ChainProgressHiveBoxProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'chainProgressHiveBoxProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$chainProgressHiveBoxHash();
+
+  @$internal
+  @override
+  $ProviderElement<Box<ChainProgressHiveModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Box<ChainProgressHiveModel> create(Ref ref) {
+    return chainProgressHiveBox(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Box<ChainProgressHiveModel> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Box<ChainProgressHiveModel>>(value),
+    );
+  }
+}
+
+String _$chainProgressHiveBoxHash() =>
+    r'5c3a7355c6441170342f5823e4201eaf3b3b91d8';

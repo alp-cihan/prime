@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/achievements/presentation/providers/achievement_evaluation_controller.dart';
 import '../../features/achievements/presentation/widgets/achievement_unlock_dialog.dart';
+import '../../features/chains/presentation/providers/chain_evaluation_controller.dart';
 import '../../features/xp_ledger/presentation/providers/level_up_controller.dart';
 import '../../features/xp_ledger/presentation/widgets/level_up_dialog.dart';
 
@@ -44,6 +45,15 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         }
       },
     );
+
+    // Chain evaluation has no dialog of its own this phase (Phase 11
+    // non-goals: no completion celebration UI) — but the controller must
+    // still be kept alive somewhere for its `build()` to ever run and wire
+    // up its quest-completion listeners, exactly like the two providers
+    // above. A bare `watch` here (this widget always rebuilds when the
+    // shell exists) is the simplest way to do that without inventing a
+    // dialog just to justify the read.
+    ref.watch(chainEvaluationControllerProvider);
 
     return Scaffold(
       body: navigationShell,

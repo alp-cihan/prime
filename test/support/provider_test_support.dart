@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 import 'package:prime/core/persistence/hive_box_names.dart';
 import 'package:prime/core/providers/persistence_providers.dart';
 import 'package:prime/features/achievements/data/models/achievement_unlock_hive_model.dart';
+import 'package:prime/features/chains/data/models/chain_progress_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_progress_hive_model.dart';
 import 'package:prime/features/xp_ledger/data/models/xp_transaction_hive_model.dart';
@@ -25,6 +26,9 @@ Future<ProviderContainer> buildTestContainer({
   final achievementUnlockBox = await Hive.openBox<AchievementUnlockHiveModel>(
     HiveBoxNames.achievementUnlocks,
   );
+  final chainProgressBox = await Hive.openBox<ChainProgressHiveModel>(
+    HiveBoxNames.chainProgress,
+  );
 
   return ProviderContainer(
     overrides: [
@@ -32,6 +36,7 @@ Future<ProviderContainer> buildTestContainer({
       questProgressHiveBoxProvider.overrideWithValue(progressBox),
       xpTransactionHiveBoxProvider.overrideWithValue(ledgerBox),
       achievementUnlockHiveBoxProvider.overrideWithValue(achievementUnlockBox),
+      chainProgressHiveBoxProvider.overrideWithValue(chainProgressBox),
       ...extraOverrides,
     ],
   );

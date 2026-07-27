@@ -62,8 +62,16 @@ class XpSummaryPage extends ConsumerWidget {
       children: [
         LevelProgressCard(levelProgress: levelProgress, totalXp: totalXp),
         const SizedBox(height: AppSpacing.lg),
-        _AchievementsEntryPoint(
+        _NavEntryPoint(
+          icon: Icons.emoji_events_outlined,
+          label: 'Achievements',
           onTap: () => context.go(AppRoutes.achievements),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _NavEntryPoint(
+          icon: Icons.auto_stories_outlined,
+          label: 'Chains',
+          onTap: () => context.go(AppRoutes.chains),
         ),
         const SizedBox(height: AppSpacing.lg),
         Text('XP by attribute', style: Theme.of(context).textTheme.titleMedium),
@@ -77,12 +85,19 @@ class XpSummaryPage extends ConsumerWidget {
   }
 }
 
-/// Entry point into the Achievements gallery — the only place this feature
-/// is reachable from, per docs/architecture.md §19 (pushed from within the
-/// You tab rather than a new shell destination).
-class _AchievementsEntryPoint extends StatelessWidget {
-  const _AchievementsEntryPoint({required this.onTap});
+/// Entry point into a You-tab-hosted feature gallery (Achievements,
+/// Chains, ...) — the only place each such feature is reachable from, per
+/// docs/architecture.md §19 (pushed from within the You tab rather than a
+/// new shell destination).
+class _NavEntryPoint extends StatelessWidget {
+  const _NavEntryPoint({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  final String label;
   final VoidCallback onTap;
 
   @override
@@ -97,11 +112,11 @@ class _AchievementsEntryPoint extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             children: [
-              const Icon(Icons.emoji_events_outlined, color: AppColors.accent),
+              Icon(icon, color: AppColors.accent),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
-                  'Achievements',
+                  label,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),

@@ -4,6 +4,8 @@ import 'package:prime/core/domain/attribute_type.dart';
 import 'package:prime/features/achievements/domain/catalog/achievement_catalog.dart';
 import 'package:prime/features/achievements/domain/entities/achievement_unlock.dart';
 import 'package:prime/features/achievements/domain/repositories/achievement_unlock_repository.dart';
+import 'package:prime/features/chains/domain/entities/chain_progress.dart';
+import 'package:prime/features/chains/domain/repositories/chain_progress_repository.dart';
 import 'package:prime/features/quests/application/clock.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
@@ -220,6 +222,27 @@ class FakeAchievementUnlockRepository implements AchievementUnlockRepository {
       changed = true;
     }
     if (changed) _controller.notify(unlocks.values.toList());
+  }
+}
+
+class FakeChainProgressRepository implements ChainProgressRepository {
+  final Map<String, ChainProgress> progress = {};
+  final _controller = _BroadcastList<ChainProgress>();
+
+  @override
+  Future<ChainProgress?> getForChain(String chainId) async => progress[chainId];
+
+  @override
+  Future<List<ChainProgress>> getAll() async => progress.values.toList();
+
+  @override
+  Stream<List<ChainProgress>> watchAll() =>
+      _controller.stream(() => progress.values.toList());
+
+  @override
+  Future<void> upsert(ChainProgress value) async {
+    progress[value.chainId] = value;
+    _controller.notify(progress.values.toList());
   }
 }
 

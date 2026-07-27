@@ -8,6 +8,7 @@ abstract final class HiveTypeIds {
   static const int questProgress = 1;
   static const int xpTransaction = 2;
   static const int achievementUnlock = 3;
+  static const int chainProgress = 4;
 
-  /// Next id available for a future persisted model: 4.
+  /// Next id available for a future persisted model: 5.
 }

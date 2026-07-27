@@ -98,6 +98,11 @@ class AchievementEvaluationController
     }
     if (unlocked.isEmpty) return;
 
+    // This controller can be disposed while `execute()` above was still in
+    // flight (e.g. a test container disposed right after `build()` kicked
+    // off the fire-and-forget boot-time pass) — writing to `state` after
+    // that throws, so this checks `ref.mounted` first.
+    if (!ref.mounted) return;
     state = state.copyWith(
       pendingUnlocks: [...state.pendingUnlocks, ...unlocked],
     );

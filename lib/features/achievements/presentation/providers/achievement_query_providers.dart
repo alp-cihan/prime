@@ -1,24 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../domain/catalog/achievement_catalog.dart';
-import '../../domain/entities/achievement.dart';
 import '../../domain/entities/achievement_unlock.dart';
 import '../models/locked_achievement_progress.dart';
 import '../models/unlocked_achievement.dart';
 import 'achievement_repository_providers.dart';
 
 part 'achievement_query_providers.g.dart';
-
-/// The built-in catalog, sorted by [Achievement.sortOrder] — every other
-/// provider in this file reads the catalog through here, never the raw
-/// `achievementCatalog` constant directly, so a test override of this
-/// provider consistently affects the whole feature.
-@Riverpod(keepAlive: true)
-List<Achievement> achievementCatalogList(Ref ref) {
-  final sorted = List<Achievement>.of(achievementCatalog)
-    ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-  return sorted;
-}
 
 /// Emits the current unlock history immediately, then again on every
 /// subsequent change (`HiveAchievementUnlockRepository.watchAll`'s

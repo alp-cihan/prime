@@ -8,68 +8,6 @@ part of 'achievement_query_providers.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The built-in catalog, sorted by [Achievement.sortOrder] — every other
-/// provider in this file reads the catalog through here, never the raw
-/// `achievementCatalog` constant directly, so a test override of this
-/// provider consistently affects the whole feature.
-
-@ProviderFor(achievementCatalogList)
-final achievementCatalogListProvider = AchievementCatalogListProvider._();
-
-/// The built-in catalog, sorted by [Achievement.sortOrder] — every other
-/// provider in this file reads the catalog through here, never the raw
-/// `achievementCatalog` constant directly, so a test override of this
-/// provider consistently affects the whole feature.
-
-final class AchievementCatalogListProvider
-    extends
-        $FunctionalProvider<
-          List<Achievement>,
-          List<Achievement>,
-          List<Achievement>
-        >
-    with $Provider<List<Achievement>> {
-  /// The built-in catalog, sorted by [Achievement.sortOrder] — every other
-  /// provider in this file reads the catalog through here, never the raw
-  /// `achievementCatalog` constant directly, so a test override of this
-  /// provider consistently affects the whole feature.
-  AchievementCatalogListProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'achievementCatalogListProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$achievementCatalogListHash();
-
-  @$internal
-  @override
-  $ProviderElement<List<Achievement>> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  List<Achievement> create(Ref ref) {
-    return achievementCatalogList(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Achievement> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Achievement>>(value),
-    );
-  }
-}
-
-String _$achievementCatalogListHash() =>
-    r'8e3feb0445adc8e069b263b5a93a4b2841f3ef34';
-
 /// Emits the current unlock history immediately, then again on every
 /// subsequent change (`HiveAchievementUnlockRepository.watchAll`'s
 /// `Box.watch()`-backed contract) — every widget watching this shares one

@@ -15,6 +15,20 @@ abstract final class AppRoutes {
   /// Builds the concrete path to the achievements gallery.
   static String achievements = '$you/$achievementsSegment';
 
+  /// Path segment for the chains gallery, nested under [you] — same
+  /// placement rationale as [achievementsSegment].
+  static const String chainsSegment = 'chains';
+
+  /// Path segment for the chain detail route, nested under the chains
+  /// gallery.
+  static const String chainDetailSegment = ':chainId';
+
+  /// Builds the concrete path to the chains gallery.
+  static String chains = '$you/$chainsSegment';
+
+  /// Builds the concrete path to a chain's detail screen.
+  static String chainDetail(String chainId) => '$chains/$chainId';
+
   /// Path segment for the create-quest route, nested under [quests].
   /// Declared (and registered in the router) *before* [questDetailSegment]
   /// so `/quests/new` resolves here rather than being captured as
