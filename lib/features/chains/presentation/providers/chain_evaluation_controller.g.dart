@@ -81,7 +81,7 @@ final class ChainEvaluationControllerProvider
 }
 
 String _$chainEvaluationControllerHash() =>
-    r'b905afc0dfacc64b88823e0a14452c12e468f611';
+    r'9a8945fcc27917061cdf303ea1e97f105373c117';
 
 /// Triggers chain evaluation after the two quest-completion paths this app
 /// has (binary, via [completeQuestControllerProvider]; quantity/duration,

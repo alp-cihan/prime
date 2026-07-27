@@ -29,6 +29,13 @@ abstract final class AppRoutes {
   /// Builds the concrete path to a chain's detail screen.
   static String chainDetail(String chainId) => '$chains/$chainId';
 
+  /// Path segment for the identity profile, nested under [you] — same
+  /// placement rationale as [achievementsSegment].
+  static const String identitySegment = 'identity';
+
+  /// Builds the concrete path to the identity profile.
+  static String identity = '$you/$identitySegment';
+
   /// Path segment for the create-quest route, nested under [quests].
   /// Declared (and registered in the router) *before* [questDetailSegment]
   /// so `/quests/new` resolves here rather than being captured as

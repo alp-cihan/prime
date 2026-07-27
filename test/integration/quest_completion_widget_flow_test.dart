@@ -8,10 +8,22 @@ import 'package:prime/features/quests/domain/entities/quest.dart';
 import '../support/fake_repositories.dart';
 import '../support/widget_test_harness.dart';
 
+/// The You tab now has more content than the default test surface
+/// (800x600) — enlarging the viewport keeps the attribute breakdown
+/// reachable by `find.text` without needing manual scrolling.
+void _growViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 void main() {
   testWidgets(
     'boot the app, display a quest, navigate to detail, complete it, and see XP/progress update',
     (tester) async {
+      _growViewport(tester);
+
       final quest = Quest(
         id: 'q1',
         title: 'Workout',

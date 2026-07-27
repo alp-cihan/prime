@@ -38,8 +38,19 @@ Widget _harness(List<Override> overrides) {
   );
 }
 
+/// The You tab now has more content than the default test surface
+/// (800x600) — enlarging the viewport keeps every attribute tile
+/// reachable by `find.text` without needing manual scrolling.
+void _growViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 void main() {
   testWidgets('displays total XP', (tester) async {
+    _growViewport(tester);
     final ledger = FakeXpLedgerRepository()
       ..byKey['a'] = _tx(AttributeType.health, 60)
       ..byKey['b'] = _tx(AttributeType.strength, 90);
@@ -57,6 +68,7 @@ void main() {
   });
 
   testWidgets('displays XP grouped by attribute', (tester) async {
+    _growViewport(tester);
     final ledger = FakeXpLedgerRepository()
       ..byKey['a'] = _tx(AttributeType.health, 60)
       ..byKey['b'] = _tx(AttributeType.strength, 90);
@@ -80,6 +92,7 @@ void main() {
   });
 
   testWidgets('displays the level derived from LevelCurve', (tester) async {
+    _growViewport(tester);
     final ledger = FakeXpLedgerRepository()
       ..byKey['a'] = _tx(AttributeType.health, 150);
     final overrides = fakeProviderOverrides(
@@ -98,6 +111,7 @@ void main() {
   });
 
   testWidgets('renders a coherent empty state at zero XP', (tester) async {
+    _growViewport(tester);
     final overrides = fakeProviderOverrides(
       questRepository: FakeQuestRepository(),
       questProgressRepository: FakeQuestProgressRepository(),

@@ -5,6 +5,7 @@ import '../../features/achievements/presentation/achievements_page.dart';
 import '../../features/chains/presentation/chain_detail_page.dart';
 import '../../features/chains/presentation/chains_page.dart';
 import '../../features/focus/presentation/focus_page.dart';
+import '../../features/identity/presentation/identity_page.dart';
 import '../../features/journal/presentation/journal_page.dart';
 import '../../features/quests/presentation/pages/quest_form_page.dart';
 import '../../features/quests/presentation/quest_detail_page.dart';
@@ -118,6 +119,10 @@ GoRouter appRouter(Ref ref) {
                         },
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: AppRoutes.identitySegment,
+                    builder: (context, state) => const IdentityPage(),
                   ),
                 ],
               ),
