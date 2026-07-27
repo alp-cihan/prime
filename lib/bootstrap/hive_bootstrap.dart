@@ -2,6 +2,7 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import '../core/persistence/hive_box_names.dart';
 import '../core/persistence/hive_type_ids.dart';
+import '../features/achievements/data/models/achievement_unlock_hive_model.dart';
 import '../features/quests/data/models/quest_hive_model.dart';
 import '../features/quests/data/models/quest_progress_hive_model.dart';
 import '../features/xp_ledger/data/models/xp_transaction_hive_model.dart';
@@ -33,6 +34,11 @@ Future<void> _openBoxes() async {
   if (!Hive.isBoxOpen(HiveBoxNames.xpTransactions)) {
     await Hive.openBox<XpTransactionHiveModel>(HiveBoxNames.xpTransactions);
   }
+  if (!Hive.isBoxOpen(HiveBoxNames.achievementUnlocks)) {
+    await Hive.openBox<AchievementUnlockHiveModel>(
+      HiveBoxNames.achievementUnlocks,
+    );
+  }
 }
 
 /// Accessors for the already-opened boxes — call only after [bootstrapHive].
@@ -43,3 +49,6 @@ Box<QuestProgressHiveModel> questProgressBox() =>
 
 Box<XpTransactionHiveModel> xpTransactionBox() =>
     Hive.box<XpTransactionHiveModel>(HiveBoxNames.xpTransactions);
+
+Box<AchievementUnlockHiveModel> achievementUnlockBox() =>
+    Hive.box<AchievementUnlockHiveModel>(HiveBoxNames.achievementUnlocks);

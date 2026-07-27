@@ -65,6 +65,10 @@ void main() {
         questProgressRepository: FakeQuestProgressRepository(),
         xpLedgerRepository: FakeXpLedgerRepository(),
         today: DateTime.utc(2026, 1, 10),
+        // This test is about quest CRUD, not achievements — see
+        // `FakeAchievementUnlockRepository.allUnlocked`'s doc.
+        achievementUnlockRepository:
+            FakeAchievementUnlockRepository.allUnlocked(),
       );
 
       await tester.pumpWidget(

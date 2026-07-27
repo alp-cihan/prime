@@ -35,6 +35,10 @@ void main() {
         questProgressRepository: FakeQuestProgressRepository(),
         xpLedgerRepository: FakeXpLedgerRepository(),
         today: DateTime.utc(2026, 1, 10),
+        // This test is about the completion flow, not achievements — see
+        // `FakeAchievementUnlockRepository.allUnlocked`'s doc.
+        achievementUnlockRepository:
+            FakeAchievementUnlockRepository.allUnlocked(),
       );
 
       // Boot the real app.

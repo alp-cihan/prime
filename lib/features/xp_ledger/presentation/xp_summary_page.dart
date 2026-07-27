@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/domain/attribute_type.dart';
+import '../../../core/router/app_routes.dart';
 import '../domain/services/level_curve.dart';
 import 'providers/xp_ledger_providers.dart';
 import 'widgets/attribute_xp_tile.dart';
@@ -60,6 +62,10 @@ class XpSummaryPage extends ConsumerWidget {
       children: [
         LevelProgressCard(levelProgress: levelProgress, totalXp: totalXp),
         const SizedBox(height: AppSpacing.lg),
+        _AchievementsEntryPoint(
+          onTap: () => context.go(AppRoutes.achievements),
+        ),
+        const SizedBox(height: AppSpacing.lg),
         Text('XP by attribute', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         for (final type in AttributeType.values) ...[
@@ -67,6 +73,46 @@ class XpSummaryPage extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
         ],
       ],
+    );
+  }
+}
+
+/// Entry point into the Achievements gallery — the only place this feature
+/// is reachable from, per docs/architecture.md §19 (pushed from within the
+/// You tab rather than a new shell destination).
+class _AchievementsEntryPoint extends StatelessWidget {
+  const _AchievementsEntryPoint({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.darkSurface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              const Icon(Icons.emoji_events_outlined, color: AppColors.accent),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'Achievements',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.darkTextSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

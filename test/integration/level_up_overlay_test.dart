@@ -82,6 +82,11 @@ void main() {
         questProgressRepository: FakeQuestProgressRepository(),
         xpLedgerRepository: ledgerRepository,
         today: _today,
+        // This test is about level-up crossings, not achievements — see
+        // `FakeAchievementUnlockRepository.allUnlocked`'s doc for why
+        // achievement reward XP/dialogs must not interfere here.
+        achievementUnlockRepository:
+            FakeAchievementUnlockRepository.allUnlocked(),
       );
 
       await tester.pumpWidget(

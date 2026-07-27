@@ -2,6 +2,7 @@ import 'package:hive_ce/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../bootstrap/hive_bootstrap.dart' as bootstrap;
+import '../../features/achievements/data/models/achievement_unlock_hive_model.dart';
 import '../../features/quests/data/models/quest_hive_model.dart';
 import '../../features/quests/data/models/quest_progress_hive_model.dart';
 import '../../features/xp_ledger/data/models/xp_transaction_hive_model.dart';
@@ -28,3 +29,7 @@ Box<QuestProgressHiveModel> questProgressHiveBox(Ref ref) =>
 @Riverpod(keepAlive: true)
 Box<XpTransactionHiveModel> xpTransactionHiveBox(Ref ref) =>
     bootstrap.xpTransactionBox();
+
+@Riverpod(keepAlive: true)
+Box<AchievementUnlockHiveModel> achievementUnlockHiveBox(Ref ref) =>
+    bootstrap.achievementUnlockBox();

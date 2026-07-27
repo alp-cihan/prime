@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/achievements/presentation/providers/achievement_evaluation_controller.dart';
+import '../../features/achievements/presentation/widgets/achievement_unlock_dialog.dart';
 import '../../features/xp_ledger/presentation/providers/level_up_controller.dart';
 import '../../features/xp_ledger/presentation/widgets/level_up_dialog.dart';
 
@@ -31,6 +33,17 @@ class ScaffoldWithNavBar extends ConsumerWidget {
         _showLevelUpDialog(context, ref);
       }
     });
+
+    ref.listen<AchievementEvaluationState>(
+      achievementEvaluationControllerProvider,
+      (previous, next) {
+        final hadPending = previous?.pendingUnlocks.isNotEmpty ?? false;
+        final hasPending = next.pendingUnlocks.isNotEmpty;
+        if (!hadPending && hasPending) {
+          _showAchievementUnlockDialogs(context, ref);
+        }
+      },
+    );
 
     return Scaffold(
       body: navigationShell,
@@ -84,5 +97,30 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.read(levelUpControllerProvider.notifier).acknowledge();
+  }
+
+  /// Shows one dialog per queued unlock, sequentially — a batch of several
+  /// simultaneous unlocks (Phase 10: "one quest completion may unlock
+  /// multiple achievements safely") is never collapsed into a single dialog,
+  /// each gets shown once and acknowledged before the next appears.
+  Future<void> _showAchievementUnlockDialogs(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    while (ref
+        .read(achievementEvaluationControllerProvider)
+        .pendingUnlocks
+        .isNotEmpty) {
+      if (!context.mounted) return;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const AchievementUnlockDialog(),
+      );
+      if (!context.mounted) return;
+      ref
+          .read(achievementEvaluationControllerProvider.notifier)
+          .acknowledgeFirst();
+    }
   }
 }

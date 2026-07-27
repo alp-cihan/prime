@@ -7,6 +7,14 @@ abstract final class AppRoutes {
   static const String you = '/you';
   static const String focus = '/focus';
 
+  /// Path segment for the achievements gallery, nested under [you] — per
+  /// docs/architecture.md §19 ("/achievements ... pushed from within the You
+  /// tab, not separate shell destinations — keeps nav count at 5").
+  static const String achievementsSegment = 'achievements';
+
+  /// Builds the concrete path to the achievements gallery.
+  static String achievements = '$you/$achievementsSegment';
+
   /// Path segment for the create-quest route, nested under [quests].
   /// Declared (and registered in the router) *before* [questDetailSegment]
   /// so `/quests/new` resolves here rather than being captured as

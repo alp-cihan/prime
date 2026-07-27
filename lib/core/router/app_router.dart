@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/achievements/presentation/achievements_page.dart';
 import '../../features/focus/presentation/focus_page.dart';
 import '../../features/journal/presentation/journal_page.dart';
 import '../../features/quests/presentation/pages/quest_form_page.dart';
@@ -95,6 +96,15 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.you,
                 builder: (context, state) => const YouPage(),
+                routes: [
+                  // Nested under the You branch (not a separate shell
+                  // destination) so the bottom nav stays visible — same
+                  // pattern as the quests branch's detail/edit routes.
+                  GoRoute(
+                    path: AppRoutes.achievementsSegment,
+                    builder: (context, state) => const AchievementsPage(),
+                  ),
+                ],
               ),
             ],
           ),

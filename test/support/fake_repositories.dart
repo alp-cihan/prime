@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:prime/core/domain/attribute_type.dart';
+import 'package:prime/features/achievements/domain/catalog/achievement_catalog.dart';
+import 'package:prime/features/achievements/domain/entities/achievement_unlock.dart';
+import 'package:prime/features/achievements/domain/repositories/achievement_unlock_repository.dart';
 import 'package:prime/features/quests/application/clock.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
@@ -168,6 +171,55 @@ class FakeXpLedgerRepository implements XpLedgerRepository {
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+}
+
+class FakeAchievementUnlockRepository implements AchievementUnlockRepository {
+  FakeAchievementUnlockRepository();
+
+  /// Pre-seeded with every built-in catalog achievement already "unlocked"
+  /// — for widget tests about other features (quest CRUD, completion,
+  /// level-up) that would otherwise incidentally also become achievement
+  /// tests: with every achievement already unlocked, evaluation always
+  /// finds nothing new eligible, so no reward XP is granted and no unlock
+  /// dialog ever appears to interfere with that test's own navigation/XP
+  /// assertions. The achievements feature's own behavior is covered by its
+  /// dedicated test suite instead.
+  factory FakeAchievementUnlockRepository.allUnlocked() {
+    final repository = FakeAchievementUnlockRepository();
+    final placeholderUnlockedAt = DateTime.utc(2000, 1, 1);
+    for (final achievement in achievementCatalog) {
+      repository.unlocks[achievement.id] = AchievementUnlock(
+        achievementId: achievement.id,
+        unlockedAt: placeholderUnlockedAt,
+      );
+    }
+    return repository;
+  }
+
+  final Map<String, AchievementUnlock> unlocks = {};
+  final _controller = _BroadcastList<AchievementUnlock>();
+
+  @override
+  Future<List<AchievementUnlock>> getAll() async => unlocks.values.toList();
+
+  @override
+  Future<bool> isUnlocked(String achievementId) async =>
+      unlocks.containsKey(achievementId);
+
+  @override
+  Stream<List<AchievementUnlock>> watchAll() =>
+      _controller.stream(() => unlocks.values.toList());
+
+  @override
+  Future<void> appendAll(List<AchievementUnlock> newUnlocks) async {
+    var changed = false;
+    for (final unlock in newUnlocks) {
+      if (unlocks.containsKey(unlock.achievementId)) continue;
+      unlocks[unlock.achievementId] = unlock;
+      changed = true;
+    }
+    if (changed) _controller.notify(unlocks.values.toList());
   }
 }
 

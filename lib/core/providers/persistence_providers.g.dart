@@ -182,3 +182,53 @@ final class XpTransactionHiveBoxProvider
 
 String _$xpTransactionHiveBoxHash() =>
     r'866df41bee526d85b8c7098d5307f8f6345cd330';
+
+@ProviderFor(achievementUnlockHiveBox)
+final achievementUnlockHiveBoxProvider = AchievementUnlockHiveBoxProvider._();
+
+final class AchievementUnlockHiveBoxProvider
+    extends
+        $FunctionalProvider<
+          Box<AchievementUnlockHiveModel>,
+          Box<AchievementUnlockHiveModel>,
+          Box<AchievementUnlockHiveModel>
+        >
+    with $Provider<Box<AchievementUnlockHiveModel>> {
+  AchievementUnlockHiveBoxProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'achievementUnlockHiveBoxProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$achievementUnlockHiveBoxHash();
+
+  @$internal
+  @override
+  $ProviderElement<Box<AchievementUnlockHiveModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Box<AchievementUnlockHiveModel> create(Ref ref) {
+    return achievementUnlockHiveBox(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Box<AchievementUnlockHiveModel> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Box<AchievementUnlockHiveModel>>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$achievementUnlockHiveBoxHash() =>
+    r'f59a23aad21f96aad47d6552a35cb16fdd65a9dc';
