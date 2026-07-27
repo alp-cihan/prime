@@ -6,6 +6,7 @@ import 'package:prime/features/achievements/domain/entities/achievement_unlock.d
 import 'package:prime/features/achievements/domain/repositories/achievement_unlock_repository.dart';
 import 'package:prime/features/chains/domain/entities/chain_progress.dart';
 import 'package:prime/features/chains/domain/repositories/chain_progress_repository.dart';
+import 'package:prime/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:prime/features/quests/application/clock.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
@@ -244,6 +245,24 @@ class FakeChainProgressRepository implements ChainProgressRepository {
     progress[value.chainId] = value;
     _controller.notify(progress.values.toList());
   }
+}
+
+/// [completed] defaults to `true` — most widget tests are about some other
+/// feature and need to land straight on real app content, not the
+/// onboarding gate; dedicated onboarding tests pass `completed: false`.
+class FakeOnboardingRepository implements OnboardingRepository {
+  FakeOnboardingRepository({bool completed = true}) : _completed = completed;
+
+  bool _completed;
+
+  @override
+  bool isCompleted() => _completed;
+
+  @override
+  void markCompleted() => _completed = true;
+
+  @override
+  void reset() => _completed = false;
 }
 
 class FakeClock implements Clock {

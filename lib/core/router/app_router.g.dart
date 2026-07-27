@@ -11,6 +11,15 @@ part of 'app_router.dart';
 /// The app's single [GoRouter] instance. Generated as a Riverpod provider
 /// (rather than a bare top-level constant) so later phases can inject
 /// auth/onboarding redirects without changing how the router is consumed.
+///
+/// Phase 14 onboarding gate: [AppRoutes.onboarding] is the initial location
+/// exactly when [OnboardingRepository.isCompleted] is still false (a
+/// synchronous read — see that repository's own doc for why); [redirect]
+/// re-checks the *current* value (via `ref.read`, not a captured one) on
+/// every navigation attempt, so a user who has never completed onboarding
+/// can't reach a shell route by deep-linking around it, while a completed
+/// user visiting `/onboarding` again (Settings' "Restart Onboarding") is
+/// never redirected away from it.
 
 @ProviderFor(appRouter)
 final appRouterProvider = AppRouterProvider._();
@@ -18,6 +27,15 @@ final appRouterProvider = AppRouterProvider._();
 /// The app's single [GoRouter] instance. Generated as a Riverpod provider
 /// (rather than a bare top-level constant) so later phases can inject
 /// auth/onboarding redirects without changing how the router is consumed.
+///
+/// Phase 14 onboarding gate: [AppRoutes.onboarding] is the initial location
+/// exactly when [OnboardingRepository.isCompleted] is still false (a
+/// synchronous read — see that repository's own doc for why); [redirect]
+/// re-checks the *current* value (via `ref.read`, not a captured one) on
+/// every navigation attempt, so a user who has never completed onboarding
+/// can't reach a shell route by deep-linking around it, while a completed
+/// user visiting `/onboarding` again (Settings' "Restart Onboarding") is
+/// never redirected away from it.
 
 final class AppRouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
@@ -25,6 +43,15 @@ final class AppRouterProvider
   /// The app's single [GoRouter] instance. Generated as a Riverpod provider
   /// (rather than a bare top-level constant) so later phases can inject
   /// auth/onboarding redirects without changing how the router is consumed.
+  ///
+  /// Phase 14 onboarding gate: [AppRoutes.onboarding] is the initial location
+  /// exactly when [OnboardingRepository.isCompleted] is still false (a
+  /// synchronous read — see that repository's own doc for why); [redirect]
+  /// re-checks the *current* value (via `ref.read`, not a captured one) on
+  /// every navigation attempt, so a user who has never completed onboarding
+  /// can't reach a shell route by deep-linking around it, while a completed
+  /// user visiting `/onboarding` again (Settings' "Restart Onboarding") is
+  /// never redirected away from it.
   AppRouterProvider._()
     : super(
         from: null,
@@ -58,4 +85,4 @@ final class AppRouterProvider
   }
 }
 
-String _$appRouterHash() => r'200e696f7a28f60ee35d13b467b92b5cf50fd283';
+String _$appRouterHash() => r'3c7309fb98626b9dae1c20782a49d895e2e40f3a';

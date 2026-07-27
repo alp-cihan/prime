@@ -79,6 +79,12 @@ class XpSummaryPage extends ConsumerWidget {
           label: 'Identity',
           onTap: () => context.go(AppRoutes.identity),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        _NavEntryPoint(
+          icon: Icons.settings_outlined,
+          label: 'Settings',
+          onTap: () => context.go(AppRoutes.settings),
+        ),
         const SizedBox(height: AppSpacing.lg),
         Text('XP by attribute', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),

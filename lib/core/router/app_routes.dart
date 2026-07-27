@@ -7,6 +7,18 @@ abstract final class AppRoutes {
   static const String you = '/you';
   static const String focus = '/focus';
 
+  /// Outside the 5-tab shell, same reasoning as [focus] — shown either as
+  /// the very first screen (first launch) or pushed on top of the shell
+  /// (Settings' "Restart Onboarding").
+  static const String onboarding = '/onboarding';
+
+  /// Path segment for Settings, nested under [you] — same placement
+  /// rationale as [achievementsSegment].
+  static const String settingsSegment = 'settings';
+
+  /// Builds the concrete path to Settings.
+  static String settings = '$you/$settingsSegment';
+
   /// Path segment for the achievements gallery, nested under [you] — per
   /// docs/architecture.md §19 ("/achievements ... pushed from within the You
   /// tab, not separate shell destinations — keeps nav count at 5").

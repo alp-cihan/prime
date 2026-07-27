@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive icon (API 26+) — a placeholder wiring, not final artwork: the
+     foreground below is still Flutter's default template icon. Devices on
+     API 25 and below fall back to the legacy `mipmap-*dpi/ic_launcher.png`
+     files (unchanged) instead of this. See docs/release.md's "Required
+     assets before wider distribution" for what a real adaptive icon needs
+     (a foreground with the standard ~66% safe zone, ideally Prime's actual
+     mark on this background color). -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background"/>
+    <foreground android:drawable="@mipmap/ic_launcher"/>
+</adaptive-icon>

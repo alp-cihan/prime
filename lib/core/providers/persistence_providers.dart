@@ -38,3 +38,6 @@ Box<AchievementUnlockHiveModel> achievementUnlockHiveBox(Ref ref) =>
 @Riverpod(keepAlive: true)
 Box<ChainProgressHiveModel> chainProgressHiveBox(Ref ref) =>
     bootstrap.chainProgressBox();
+
+@Riverpod(keepAlive: true)
+Box<bool> appPreferencesHiveBox(Ref ref) => bootstrap.appPreferencesBox();

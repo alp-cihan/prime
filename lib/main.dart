@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'bootstrap/hive_bootstrap.dart';
+import 'core/app_restart_scope.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,10 @@ void main() async {
     runApp(_StartupFailureApp(error: error));
     return;
   }
-  runApp(const ProviderScope(child: PrimeApp()));
+  // AppRestartScope wraps ProviderScope (not the other way around) so that
+  // "clear all local data" (Settings) can throw away and rebuild the entire
+  // provider container — see AppRestartScope's own doc for why.
+  runApp(const AppRestartScope(child: ProviderScope(child: PrimeApp())));
 }
 
 class _StartupFailureApp extends StatelessWidget {

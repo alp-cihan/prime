@@ -10,14 +10,14 @@ import '../features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 import '../hive_registrar.g.dart';
 
 /// Initializes the Hive CE storage engine, registers all generated
-/// adapters, and opens the three Phase 3 boxes. Safe to call more than
-/// once — [Hive.registerAdapters] throws if called twice unguarded (it
-/// raises on a duplicate typeId), so registration is skipped once already
-/// done, and each box open is guarded by [Hive.isBoxOpen].
+/// adapters, and opens every box Prime owns. Safe to call more than once —
+/// [Hive.registerAdapters] throws if called twice unguarded (it raises on a
+/// duplicate typeId), so registration is skipped once already done, and
+/// each box open is guarded by [Hive.isBoxOpen].
 Future<void> bootstrapHive() async {
   await Hive.initFlutter();
   _registerAdaptersIfNeeded();
-  await _openBoxes();
+  await reopenAllBoxes();
 }
 
 void _registerAdaptersIfNeeded() {
@@ -25,7 +25,16 @@ void _registerAdaptersIfNeeded() {
   Hive.registerAdapters();
 }
 
-Future<void> _openBoxes() async {
+/// Just the "open every box" half of [bootstrapHive] — deliberately without
+/// [Hive.initFlutter] or adapter registration, both one-time, app-startup
+/// concerns that are already done by the time anything needs to *reopen* a
+/// box mid-session. This is what `ClearLocalDataUseCase` calls after
+/// deleting every box from disk: calling the full [bootstrapHive] again
+/// would re-invoke [Hive.initFlutter], which talks to the `path_provider`
+/// platform channel — harmless in a real app, but unavailable (and
+/// unnecessary — Hive's home directory is already known) in a plain `test()`
+/// with no platform bindings.
+Future<void> reopenAllBoxes() async {
   if (!Hive.isBoxOpen(HiveBoxNames.quests)) {
     await Hive.openBox<QuestHiveModel>(HiveBoxNames.quests);
   }
@@ -43,6 +52,9 @@ Future<void> _openBoxes() async {
   if (!Hive.isBoxOpen(HiveBoxNames.chainProgress)) {
     await Hive.openBox<ChainProgressHiveModel>(HiveBoxNames.chainProgress);
   }
+  if (!Hive.isBoxOpen(HiveBoxNames.appPreferences)) {
+    await Hive.openBox<bool>(HiveBoxNames.appPreferences);
+  }
 }
 
 /// Accessors for the already-opened boxes — call only after [bootstrapHive].
@@ -59,3 +71,5 @@ Box<AchievementUnlockHiveModel> achievementUnlockBox() =>
 
 Box<ChainProgressHiveModel> chainProgressBox() =>
     Hive.box<ChainProgressHiveModel>(HiveBoxNames.chainProgress);
+
+Box<bool> appPreferencesBox() => Hive.box<bool>(HiveBoxNames.appPreferences);

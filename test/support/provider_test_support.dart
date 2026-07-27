@@ -29,6 +29,9 @@ Future<ProviderContainer> buildTestContainer({
   final chainProgressBox = await Hive.openBox<ChainProgressHiveModel>(
     HiveBoxNames.chainProgress,
   );
+  final appPreferencesBox = await Hive.openBox<bool>(
+    HiveBoxNames.appPreferences,
+  );
 
   return ProviderContainer(
     overrides: [
@@ -37,6 +40,7 @@ Future<ProviderContainer> buildTestContainer({
       xpTransactionHiveBoxProvider.overrideWithValue(ledgerBox),
       achievementUnlockHiveBoxProvider.overrideWithValue(achievementUnlockBox),
       chainProgressHiveBoxProvider.overrideWithValue(chainProgressBox),
+      appPreferencesHiveBoxProvider.overrideWithValue(appPreferencesBox),
       ...extraOverrides,
     ],
   );

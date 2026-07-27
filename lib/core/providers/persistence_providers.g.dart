@@ -280,3 +280,45 @@ final class ChainProgressHiveBoxProvider
 
 String _$chainProgressHiveBoxHash() =>
     r'5c3a7355c6441170342f5823e4201eaf3b3b91d8';
+
+@ProviderFor(appPreferencesHiveBox)
+final appPreferencesHiveBoxProvider = AppPreferencesHiveBoxProvider._();
+
+final class AppPreferencesHiveBoxProvider
+    extends $FunctionalProvider<Box<bool>, Box<bool>, Box<bool>>
+    with $Provider<Box<bool>> {
+  AppPreferencesHiveBoxProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appPreferencesHiveBoxProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appPreferencesHiveBoxHash();
+
+  @$internal
+  @override
+  $ProviderElement<Box<bool>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Box<bool> create(Ref ref) {
+    return appPreferencesHiveBox(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Box<bool> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Box<bool>>(value),
+    );
+  }
+}
+
+String _$appPreferencesHiveBoxHash() =>
+    r'38e289172650f90d53ce4fa550671d553534b68f';

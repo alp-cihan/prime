@@ -309,4 +309,126 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('Phase 14 onboarding gate', () {
+    testWidgets(
+      'a fresh install (onboarding not completed) launches into onboarding, '
+      'not the shell',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository(),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: DateTime.utc(2026, 1, 10),
+          onboardingCompleted: false,
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(overrides: overrides, child: const PrimeApp()),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Welcome to Prime'), findsOneWidget);
+        expect(find.byType(NavigationBar), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a completed onboarding state launches straight into the shell — '
+      'onboarding does not appear again',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository(),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: DateTime.utc(2026, 1, 10),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(overrides: overrides, child: const PrimeApp()),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Welcome to Prime'), findsNothing);
+        expect(find.byType(NavigationBar), findsOneWidget);
+      },
+    );
+
+    testWidgets('deep-linking straight to a shell route while onboarding is '
+        'incomplete redirects back to onboarding', (tester) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+        onboardingCompleted: false,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(context).go('/quests');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Welcome to Prime'), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+    });
+  });
+
+  group('Settings', () {
+    testWidgets('/you/settings keeps the You tab highlighted', (tester) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(context).go('/you/settings');
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(AppBar, 'Settings'), findsOneWidget);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        4,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the AppBar back button from Settings returns to You', (
+      tester,
+    ) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: DateTime.utc(2026, 1, 10),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(overrides: overrides, child: const PrimeApp()),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(Scaffold).first);
+      GoRouter.of(context).go('/you/settings');
+      await tester.pumpAndSettle();
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Level'), findsWidgets);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

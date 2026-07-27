@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Modify this file to customize your launch splash screen -->
+<!-- Prime is dark-first unconditionally (no light theme exists — see
+     lib/app.dart's `themeMode: ThemeMode.dark`), so the launch splash is
+     always dark too, regardless of the system's own light/dark setting. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
+    <item android:drawable="@color/ic_launcher_background" />
 
     <!-- You can insert your own image assets here -->
     <!-- <item>

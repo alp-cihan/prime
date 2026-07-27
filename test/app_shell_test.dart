@@ -3,11 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime/app.dart';
 
+import 'support/fake_repositories.dart';
+import 'support/widget_test_harness.dart';
+
 void main() {
   testWidgets('renders all 5 shell tabs and navigates between them', (
     tester,
   ) async {
-    await tester.pumpWidget(const ProviderScope(child: PrimeApp()));
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(overrides: overrides, child: const PrimeApp()),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Today'), findsWidgets);

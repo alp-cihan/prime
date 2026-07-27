@@ -1,5 +1,6 @@
 import 'package:prime/features/achievements/presentation/providers/achievement_repository_providers.dart';
 import 'package:prime/features/chains/presentation/providers/chain_repository_providers.dart';
+import 'package:prime/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:prime/features/quests/presentation/providers/quest_repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 import 'package:prime/features/xp_ledger/presentation/providers/xp_ledger_providers.dart';
@@ -16,6 +17,11 @@ import 'fake_repositories.dart';
 /// `PrimeApp`/the shell is mounted, real or fake. The chain catalog is
 /// empty by default in production, so an empty fake repository is already
 /// exactly the harmless no-op it would be for real.
+///
+/// [onboardingCompleted] defaults to `true` (Phase 14) — the router redirects
+/// to `/onboarding` whenever it's false, and the overwhelming majority of
+/// existing widget tests are about some other feature and need to land on
+/// real app content immediately; onboarding's own tests pass `false`.
 List<Override> fakeProviderOverrides({
   required FakeQuestRepository questRepository,
   required FakeQuestProgressRepository questProgressRepository,
@@ -23,6 +29,7 @@ List<Override> fakeProviderOverrides({
   required DateTime today,
   FakeAchievementUnlockRepository? achievementUnlockRepository,
   FakeChainProgressRepository? chainProgressRepository,
+  bool onboardingCompleted = true,
 }) {
   return [
     questRepositoryProvider.overrideWithValue(questRepository),
@@ -33,6 +40,9 @@ List<Override> fakeProviderOverrides({
     ),
     chainProgressRepositoryProvider.overrideWithValue(
       chainProgressRepository ?? FakeChainProgressRepository(),
+    ),
+    onboardingRepositoryProvider.overrideWithValue(
+      FakeOnboardingRepository(completed: onboardingCompleted),
     ),
     clockProvider.overrideWithValue(FakeClock(today)),
   ];

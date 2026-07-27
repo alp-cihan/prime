@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive icon background — Prime's dark-first surface color
+         (core/design_system/tokens/app_colors.dart: AppColors.darkBackground),
+         kept in sync with that constant by hand. The foreground below is
+         still the placeholder Flutter default icon, not final Prime
+         artwork — see docs/release.md's "Required assets before wider
+         distribution" checklist. -->
+    <color name="ic_launcher_background">#0A0A0B</color>
+</resources>
