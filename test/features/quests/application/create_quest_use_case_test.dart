@@ -6,6 +6,7 @@ import 'package:prime/features/quests/application/id_generator.dart';
 import 'package:prime/features/quests/application/models/create_quest_command.dart';
 import 'package:prime/features/quests/application/use_cases/create_quest_use_case.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/domain/repositories/quest_repository.dart';
 
 class _FakeIdGenerator implements IdGenerator {
@@ -45,7 +46,7 @@ CreateQuestCommand _validCommand({
   Map<AttributeType, int> attributeXpWeights = const {AttributeType.health: 60},
   ProgressType progressType = ProgressType.binary,
   double targetProgress = 1,
-  String? repeatabilityRule,
+  Repeatability repeatability = Repeatability.none,
 }) {
   return CreateQuestCommand(
     title: title,
@@ -55,7 +56,7 @@ CreateQuestCommand _validCommand({
     attributeXpWeights: attributeXpWeights,
     progressType: progressType,
     targetProgress: targetProgress,
-    repeatabilityRule: repeatabilityRule,
+    repeatability: repeatability,
   );
 }
 

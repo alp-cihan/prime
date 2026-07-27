@@ -1,5 +1,6 @@
 import '../../../../core/domain/attribute_type.dart';
 import '../../domain/entities/quest.dart';
+import '../../domain/entities/repeatability.dart';
 
 /// Input to [UpdateQuestUseCase]. Carries the same editable field set as
 /// [CreateQuestCommand] plus [questId] — every other [Quest] field (`state`,
@@ -15,7 +16,7 @@ class UpdateQuestCommand {
   final Map<AttributeType, int> attributeXpWeights;
   final ProgressType progressType;
   final double targetProgress;
-  final String? repeatabilityRule;
+  final Repeatability repeatability;
 
   const UpdateQuestCommand({
     required this.questId,
@@ -26,6 +27,6 @@ class UpdateQuestCommand {
     required this.attributeXpWeights,
     required this.progressType,
     required this.targetProgress,
-    this.repeatabilityRule,
+    this.repeatability = Repeatability.none,
   });
 }

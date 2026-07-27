@@ -26,8 +26,8 @@ void main() {
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
           qualityRating: null,
-          repeatIndexToday: 0,
-          priorXpEarnedTodayForQuest: 0,
+          repeatIndexInOccurrence: 0,
+          priorXpEarnedInOccurrence: 0,
           isFirstCompletionEver: false,
         );
 
@@ -63,8 +63,8 @@ void main() {
               difficulty: entry.key,
               completionRatio: 1.0,
               consecutiveDayStreak: 0,
-              repeatIndexToday: 0,
-              priorXpEarnedTodayForQuest: 0,
+              repeatIndexInOccurrence: 0,
+              priorXpEarnedInOccurrence: 0,
               isFirstCompletionEver: false,
             ),
           );
@@ -81,8 +81,8 @@ void main() {
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.0,
         consecutiveDayStreak: 0,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: true,
       ),
     );
@@ -97,8 +97,8 @@ void main() {
           difficulty: QuestDifficulty.normal,
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
-          repeatIndexToday: 1,
-          priorXpEarnedTodayForQuest: 100,
+          repeatIndexInOccurrence: 1,
+          priorXpEarnedInOccurrence: 100,
           isFirstCompletionEver: false,
         ),
       );
@@ -112,8 +112,8 @@ void main() {
           difficulty: QuestDifficulty.normal,
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
-          repeatIndexToday: 2,
-          priorXpEarnedTodayForQuest: 150,
+          repeatIndexInOccurrence: 2,
+          priorXpEarnedInOccurrence: 150,
           isFirstCompletionEver: false,
         ),
       );
@@ -133,8 +133,8 @@ void main() {
           difficulty: QuestDifficulty.normal,
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
-          repeatIndexToday: 0,
-          priorXpEarnedTodayForQuest: 190,
+          repeatIndexInOccurrence: 0,
+          priorXpEarnedInOccurrence: 190,
           isFirstCompletionEver: false,
         ),
       );
@@ -155,8 +155,8 @@ void main() {
           difficulty: QuestDifficulty.normal,
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
-          repeatIndexToday: 0,
-          priorXpEarnedTodayForQuest: 200,
+          repeatIndexInOccurrence: 0,
+          priorXpEarnedInOccurrence: 200,
           isFirstCompletionEver: false,
         ),
       );
@@ -179,8 +179,8 @@ void main() {
             difficulty: QuestDifficulty.normal,
             completionRatio: 1.0,
             consecutiveDayStreak: 0,
-            repeatIndexToday: 0,
-            priorXpEarnedTodayForQuest: 500,
+            repeatIndexInOccurrence: 0,
+            priorXpEarnedInOccurrence: 500,
             isFirstCompletionEver: false,
           ),
         );
@@ -200,8 +200,8 @@ void main() {
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.0,
         consecutiveDayStreak: 15,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       ),
     );
@@ -211,8 +211,8 @@ void main() {
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.0,
         consecutiveDayStreak: 30,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       ),
     );
@@ -234,8 +234,8 @@ void main() {
           completionRatio: 1.0,
           consecutiveDayStreak: 0,
           qualityRating: 2, // 0.9 multiplier: round(31 * 0.9) = 28
-          repeatIndexToday: 0,
-          priorXpEarnedTodayForQuest: 0,
+          repeatIndexInOccurrence: 0,
+          priorXpEarnedInOccurrence: 0,
           isFirstCompletionEver: false,
         ),
       );
@@ -259,8 +259,8 @@ void main() {
           difficulty: QuestDifficulty.normal,
           completionRatio: 29 / 30,
           consecutiveDayStreak: 0,
-          repeatIndexToday: 0,
-          priorXpEarnedTodayForQuest: 0,
+          repeatIndexInOccurrence: 0,
+          priorXpEarnedInOccurrence: 0,
           isFirstCompletionEver: false,
         ),
       );
@@ -310,8 +310,8 @@ void main() {
               completionRatio: 0.73,
               consecutiveDayStreak: testCase.streak,
               qualityRating: testCase.quality,
-              repeatIndexToday: 0,
-              priorXpEarnedTodayForQuest: 0,
+              repeatIndexInOccurrence: 0,
+              priorXpEarnedInOccurrence: 0,
               isFirstCompletionEver: true,
             ),
           );
@@ -332,8 +332,8 @@ void main() {
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.0,
         consecutiveDayStreak: 0,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       );
       expect(result, isA<Err<QuestXpAllocation>>());
@@ -345,8 +345,8 @@ void main() {
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.5,
         consecutiveDayStreak: 0,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       );
       expect(result, isA<Err<QuestXpAllocation>>());
@@ -359,21 +359,21 @@ void main() {
         completionRatio: 1.0,
         consecutiveDayStreak: 0,
         qualityRating: 6,
-        repeatIndexToday: 0,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: 0,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       );
       expect(result, isA<Err<QuestXpAllocation>>());
     });
 
-    test('rejects a negative repeatIndexToday', () {
+    test('rejects a negative repeatIndexInOccurrence', () {
       final result = calculator.calculate(
         attributeXpWeights: {AttributeType.health: 10},
         difficulty: QuestDifficulty.normal,
         completionRatio: 1.0,
         consecutiveDayStreak: 0,
-        repeatIndexToday: -1,
-        priorXpEarnedTodayForQuest: 0,
+        repeatIndexInOccurrence: -1,
+        priorXpEarnedInOccurrence: 0,
         isFirstCompletionEver: false,
       );
       expect(result, isA<Err<QuestXpAllocation>>());

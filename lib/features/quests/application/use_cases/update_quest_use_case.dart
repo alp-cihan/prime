@@ -15,9 +15,10 @@ import '../models/update_quest_command.dart';
 ///
 /// Deliberately constructs a new [Quest] directly rather than
 /// `existing.copyWith(...)`: [Quest.copyWith] falls back to the existing
-/// value via `??` for every parameter, so `copyWith(repeatabilityRule:
-/// null)` could never actually *clear* an existing repeatability rule —
-/// direct construction is the only way "no repeat" survives an edit.
+/// value via `??` for every parameter, and several fields below (`state`,
+/// `currentProgress`, `deadline`, ...) must be preserved unconditionally
+/// regardless of what the form submitted — direct construction makes that
+/// explicit instead of relying on the form never sending those fields.
 ///
 /// Never touches [QuestProgressRepository] or the XP ledger — editing a
 /// quest's definition must never reset progress or rewrite historical
@@ -53,7 +54,6 @@ class UpdateQuestUseCase {
       attributeXpWeights: command.attributeXpWeights,
       progressType: command.progressType,
       targetProgress: command.targetProgress,
-      repeatabilityRule: command.repeatabilityRule,
     );
     if (failure != null) {
       return Err(failure);
@@ -76,7 +76,7 @@ class UpdateQuestUseCase {
       state: existing.state,
       failureBehavior: existing.failureBehavior,
       optionalReward: existing.optionalReward,
-      repeatabilityRule: command.repeatabilityRule,
+      repeatability: command.repeatability,
     );
 
     try {

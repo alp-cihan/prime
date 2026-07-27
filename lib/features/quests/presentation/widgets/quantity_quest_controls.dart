@@ -40,7 +40,9 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final today = ref.watch(todayUtcProvider);
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(widget.quest.repeatability),
+    );
     final controllerState = ref.watch(questProgressControllerProvider);
     final isLoading = controllerState.isLoading;
 
@@ -87,7 +89,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
                   ? null
                   : () => ref
                         .read(questProgressControllerProvider.notifier)
-                        .decrement(widget.quest.id, today),
+                        .decrement(widget.quest.id, anchor),
               icon: const Icon(Icons.remove),
               tooltip: 'Decrease by 1',
             ),
@@ -110,7 +112,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
                   ? null
                   : () => ref
                         .read(questProgressControllerProvider.notifier)
-                        .increment(widget.quest.id, today),
+                        .increment(widget.quest.id, anchor),
               icon: const Icon(Icons.add, color: Colors.white),
               tooltip: 'Increase by 1',
             ),
@@ -152,10 +154,12 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
   void _submitCustomAmount() {
     final parsed = double.tryParse(_amountController.text.trim());
     if (parsed == null) return;
-    final today = ref.read(todayUtcProvider);
+    final anchor = ref.read(
+      questOccurrenceAnchorDateProvider(widget.quest.repeatability),
+    );
     ref
         .read(questProgressControllerProvider.notifier)
-        .addAmount(widget.quest.id, today, parsed);
+        .addAmount(widget.quest.id, anchor, parsed);
     _amountController.clear();
     setState(() => _customAmountValid = false);
   }

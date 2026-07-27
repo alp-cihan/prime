@@ -210,12 +210,14 @@ class _QuestDetailBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final today = ref.watch(todayUtcProvider);
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final progressAsync = ref.watch(
-      questProgressForDateProvider(quest.id, today),
+      questProgressForDateProvider(quest.id, anchor),
     );
     final transactionsAsync = ref.watch(
-      xpTransactionsForQuestAndDateProvider(quest.id, today),
+      xpTransactionsForQuestAndDateProvider(quest.id, anchor),
     );
     final baseXp = quest.attributeXpWeights.values.fold<int>(
       0,
@@ -321,10 +323,12 @@ class _BinaryControls extends ConsumerWidget {
   }
 
   void _complete(WidgetRef ref) {
-    final today = ref.read(todayUtcProvider);
+    final anchor = ref.read(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final command = CompleteQuestCommand(
       questId: quest.id,
-      date: today,
+      date: anchor,
       progressValue: quest.targetProgress,
     );
     ref.read(completeQuestControllerProvider.notifier).complete(command);
@@ -445,7 +449,7 @@ class _QuestFacts extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           _FactRow(
             label: 'Repeats',
-            value: quest.repeatabilityRule ?? 'One-time',
+            value: repeatabilityDisplayName(quest.repeatability),
           ),
           const SizedBox(height: AppSpacing.xs),
           _FactRow(

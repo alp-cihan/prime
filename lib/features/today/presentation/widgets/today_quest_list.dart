@@ -59,9 +59,11 @@ class _TodayQuestListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final today = ref.watch(todayUtcProvider);
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final progressAsync = ref.watch(
-      questProgressForDateProvider(quest.id, today),
+      questProgressForDateProvider(quest.id, anchor),
     );
 
     return QuestCard(

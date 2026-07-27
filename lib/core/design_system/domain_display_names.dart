@@ -1,5 +1,6 @@
 import '../domain/attribute_type.dart';
 import '../../features/quests/domain/entities/quest.dart';
+import '../../features/quests/domain/entities/repeatability.dart';
 
 /// Presentation-only display strings for domain enums. Kept here (not in
 /// domain) since domain must stay pure business logic with no UI-facing
@@ -70,6 +71,17 @@ String progressTypeDisplayName(ProgressType type) {
       return 'Quantity';
     case ProgressType.duration:
       return 'Duration';
+  }
+}
+
+String repeatabilityDisplayName(Repeatability repeatability) {
+  switch (repeatability) {
+    case Repeatability.none:
+      return 'One-time';
+    case Repeatability.daily:
+      return 'Daily';
+    case Repeatability.weekly:
+      return 'Weekly';
   }
 }
 

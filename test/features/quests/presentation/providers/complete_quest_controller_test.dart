@@ -5,6 +5,7 @@ import 'package:prime/core/domain/failure.dart';
 import 'package:prime/features/quests/application/models/complete_quest_command.dart';
 import 'package:prime/features/quests/application/models/complete_quest_result.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/presentation/providers/complete_quest_controller.dart';
 import 'package:prime/features/quests/presentation/providers/quest_query_providers.dart';
 import 'package:prime/features/quests/presentation/providers/quest_repository_providers.dart';
@@ -16,7 +17,7 @@ import '../../../../support/provider_test_support.dart';
 Quest _buildQuest({
   String id = 'q1',
   QuestCompletionState state = QuestCompletionState.notStarted,
-  String? repeatabilityRule,
+  Repeatability repeatability = Repeatability.none,
 }) {
   return Quest(
     id: id,
@@ -35,7 +36,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
-    repeatabilityRule: repeatabilityRule,
+    repeatability: repeatability,
   );
 }
 
@@ -320,11 +321,11 @@ void main() {
     () async {
       final container = await buildTestContainer();
       addTearDown(container.dispose);
-      // repeatabilityRule: 'daily' — completing the same quest twice is
-      // only allowed for a repeatable quest; a non-repeatable quest is
-      // covered separately by complete_quest_use_case_test.dart's
-      // "non-repeatable quest lifetime gating" group.
-      final quest = _buildQuest(repeatabilityRule: 'daily');
+      // Repeatability.daily — completing the same quest twice is only
+      // allowed for a repeatable quest; a non-repeatable quest is covered
+      // separately by complete_quest_use_case_test.dart's "non-repeatable
+      // quest lifetime gating" group.
+      final quest = _buildQuest(repeatability: Repeatability.daily);
       await container.read(questRepositoryProvider).upsert(quest);
       final command = CompleteQuestCommand(
         questId: quest.id,

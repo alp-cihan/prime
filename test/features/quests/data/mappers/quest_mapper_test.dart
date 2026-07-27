@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prime/core/domain/attribute_type.dart';
 import 'package:prime/features/quests/data/mappers/quest_mapper.dart';
+import 'package:prime/features/quests/data/models/quest_hive_model.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/domain/entities/reward.dart';
 
 void main() {
@@ -33,7 +35,7 @@ void main() {
         titleId: 'title-1',
         achievementId: 'ach-1',
       ),
-      repeatabilityRule: 'daily',
+      repeatability: Repeatability.daily,
     );
   }
 
@@ -65,7 +67,36 @@ void main() {
     expect(roundTripped.deadline, isNull);
     expect(roundTripped.questChainId, isNull);
     expect(roundTripped.optionalReward, isNull);
-    expect(roundTripped.repeatabilityRule, isNull);
+    expect(roundTripped.repeatability, Repeatability.none);
+  });
+
+  test('weekly repeatability round-trips through the string field', () {
+    final quest = fullQuest().copyWith(repeatability: Repeatability.weekly);
+    final model = mapper.toModel(quest);
+    expect(model.repeatabilityRule, 'weekly');
+    expect(mapper.toDomain(model).repeatability, Repeatability.weekly);
+  });
+
+  test('legacy/unrecognized persisted repeatabilityRule strings fall back to '
+      'Repeatability.none rather than throwing', () {
+    final model = QuestHiveModel(
+      id: 'legacy',
+      title: 'Legacy quest',
+      description: '',
+      type: QuestType.daily.name,
+      difficulty: QuestDifficulty.normal.name,
+      attributeXpWeights: const {'health': 20},
+      linkedIdentityStatementIds: const [],
+      progressType: ProgressType.binary.name,
+      currentProgress: 0,
+      targetProgress: 1,
+      prerequisiteQuestIds: const [],
+      state: QuestCompletionState.notStarted.name,
+      failureBehavior: FailureBehavior.expire.name,
+      repeatabilityRule: 'monthly', // never produced by this app anymore
+    );
+
+    expect(mapper.toDomain(model).repeatability, Repeatability.none);
   });
 
   test('distinguishes a present-but-empty Reward from no Reward at all', () {

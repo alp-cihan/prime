@@ -52,13 +52,15 @@ bool _isActiveQuest(Quest quest) =>
 @riverpod
 Future<TodayQuestProgressSummary> todayQuestProgressSummary(Ref ref) async {
   final quests = await ref.watch(watchAllQuestsProvider.future);
-  final today = ref.watch(todayUtcProvider);
   final activeQuests = quests.where(_isActiveQuest).toList();
 
   var completedToday = 0;
   for (final quest in activeQuests) {
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final progress = await ref.watch(
-      questProgressForDateProvider(quest.id, today).future,
+      questProgressForDateProvider(quest.id, anchor).future,
     );
     if (progress?.isComplete ?? false) completedToday++;
   }
@@ -80,10 +82,12 @@ Future<Quest?> featuredQuest(Ref ref) async {
   final activeQuests = quests.where(_isActiveQuest).toList();
   if (activeQuests.isEmpty) return null;
 
-  final today = ref.watch(todayUtcProvider);
   for (final quest in activeQuests) {
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final progress = await ref.watch(
-      questProgressForDateProvider(quest.id, today).future,
+      questProgressForDateProvider(quest.id, anchor).future,
     );
     if (!(progress?.isComplete ?? false)) return quest;
   }

@@ -6,10 +6,12 @@ import 'package:prime/features/quests/application/clock.dart';
 import 'package:prime/features/quests/application/models/complete_quest_result.dart';
 import 'package:prime/features/quests/application/models/update_quest_progress_command.dart';
 import 'package:prime/features/quests/application/models/update_quest_progress_result.dart';
+import 'package:prime/features/quests/application/services/quest_occurrence_service.dart';
 import 'package:prime/features/quests/application/use_cases/complete_quest_use_case.dart';
 import 'package:prime/features/quests/application/use_cases/update_quest_progress_use_case.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/domain/repositories/quest_progress_repository.dart';
 import 'package:prime/features/quests/domain/repositories/quest_repository.dart';
 import 'package:prime/features/quests/domain/services/quest_progress_policy.dart';
@@ -135,7 +137,7 @@ Quest _buildQuest({
   ProgressType progressType = ProgressType.quantity,
   double targetProgress = 8,
   QuestCompletionState state = QuestCompletionState.notStarted,
-  String? repeatabilityRule,
+  Repeatability repeatability = Repeatability.none,
 }) {
   return Quest(
     id: id,
@@ -151,7 +153,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
-    repeatabilityRule: repeatabilityRule,
+    repeatability: repeatability,
   );
 }
 
@@ -173,6 +175,9 @@ void main() {
         questRepository: questRepository,
         questProgressRepository: progressRepository,
         xpLedgerRepository: ledgerRepository,
+        occurrenceService: QuestOccurrenceService(
+          xpLedgerRepository: ledgerRepository,
+        ),
         clock: _FakeClock(today),
       ),
     );
@@ -255,7 +260,7 @@ void main() {
 
   test('non-repeatable quest: repeated increments while already at target do '
       'not create a second XP transaction', () async {
-    // repeatabilityRule is unset (null) — non-repeatable, per the only
+    // repeatability is Repeatability.none — non-repeatable, per the only
     // repeatability signal the domain model wires up anywhere.
     questRepository.quests['q1'] = _buildQuest(targetProgress: 8);
 
@@ -325,7 +330,7 @@ void main() {
     // XP a second time, because "first completion ever" was derived from
     // QuestProgress history, which the decrement itself had just
     // rewritten back to `isComplete: false`. A quest with no
-    // repeatabilityRule is one-time and must never be rewarded twice for
+    // repeatability is Repeatability.none (one-time) and must never be rewarded twice for
     // its lifetime, regardless of how the target is re-reached.
     questRepository.quests['q1'] = _buildQuest(targetProgress: 8);
     await useCase.execute(
@@ -376,7 +381,7 @@ void main() {
       'duplicate of the first award', () async {
     questRepository.quests['q1'] = _buildQuest(
       targetProgress: 8,
-      repeatabilityRule: 'daily',
+      repeatability: Repeatability.daily,
     );
     await useCase.execute(
       UpdateQuestProgressCommand(
@@ -421,7 +426,7 @@ void main() {
       'is rewarded again', () async {
     questRepository.quests['q1'] = _buildQuest(
       targetProgress: 8,
-      repeatabilityRule: 'daily',
+      repeatability: Repeatability.daily,
     );
     await useCase.execute(
       UpdateQuestProgressCommand(
@@ -447,11 +452,75 @@ void main() {
     final value = (second as Ok<UpdateQuestProgressResult>).value;
     expect(value.completed, isTrue);
     // 80 base xp * no first-completion bonus (already earned once) * 1.02
-    // one-day-streak consistency bonus, repeatIndexToday resets to 0 for
+    // one-day-streak consistency bonus, repeatIndexInOccurrence resets to 0 for
     // the new day so no diminishing returns applies = round(81.6) = 82.
     expect(value.completionResult!.totalXpAwarded, 82);
     expect(ledgerRepository.byKey.length, 2);
     expect(await ledgerRepository.sumLifetimeXp(), firstAward + 82);
+  });
+
+  test('repeatable (weekly) quest: quantity progress accumulates across '
+      'the whole ISO week (not reset per day), then resets on the next '
+      'ISO week', () async {
+    // 2026-01-05 is a Monday (ISO week 2026-W02); 2026-01-07 is the
+    // Wednesday of that same week; 2026-01-12 is the following Monday.
+    final monday = DateTime.utc(2026, 1, 5);
+    final wednesday = DateTime.utc(2026, 1, 7);
+    final nextMonday = DateTime.utc(2026, 1, 12);
+    questRepository.quests['q1'] = _buildQuest(
+      targetProgress: 8,
+      repeatability: Repeatability.weekly,
+    );
+
+    // Monday: +3.
+    final afterMonday = await useCase.execute(
+      UpdateQuestProgressCommand(
+        questId: 'q1',
+        date: monday,
+        operation: QuestProgressOperation.increment,
+        amount: 3,
+      ),
+    );
+    expect((afterMonday as Ok<UpdateQuestProgressResult>).value.newProgress, 3);
+
+    // Wednesday, same ISO week: reads back Monday's accumulated 3 and adds
+    // 5 more, on top of it — not a fresh 0-based day.
+    final afterWednesday = await useCase.execute(
+      UpdateQuestProgressCommand(
+        questId: 'q1',
+        date: wednesday,
+        operation: QuestProgressOperation.increment,
+        amount: 5,
+      ),
+    );
+    final wedValue = (afterWednesday as Ok<UpdateQuestProgressResult>).value;
+    expect(wedValue.previousProgress, 3); // continued from Monday, not 0
+    expect(wedValue.newProgress, 8);
+    expect(wedValue.completed, isTrue);
+
+    // Both writes landed on the same (questId, Monday-anchor) row.
+    final storedThisWeek = await progressRepository.getForQuestAndDate(
+      'q1',
+      monday,
+    );
+    expect(storedThisWeek!.progressValue, 8);
+    expect(storedThisWeek.isComplete, isTrue);
+
+    // The following Monday: a fresh ISO week — nothing written under that
+    // anchor yet, so progress starts back at 0 rather than "already at 8".
+    final afterNextWeek = await useCase.execute(
+      UpdateQuestProgressCommand(
+        questId: 'q1',
+        date: nextMonday,
+        operation: QuestProgressOperation.increment,
+        amount: 2,
+      ),
+    );
+    final nextWeekValue =
+        (afterNextWeek as Ok<UpdateQuestProgressResult>).value;
+    expect(nextWeekValue.previousProgress, 0); // reset
+    expect(nextWeekValue.newProgress, 2);
+    expect(nextWeekValue.completed, isFalse);
   });
 
   test('a quest in an expired state cannot be progressed', () async {

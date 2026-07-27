@@ -5,12 +5,14 @@ import 'package:prime/core/domain/result.dart';
 import 'package:prime/core/persistence/hive_box_names.dart';
 import 'package:prime/features/quests/application/models/complete_quest_command.dart';
 import 'package:prime/features/quests/application/models/complete_quest_result.dart';
+import 'package:prime/features/quests/application/services/quest_occurrence_service.dart';
 import 'package:prime/features/quests/application/use_cases/complete_quest_use_case.dart';
 import 'package:prime/features/quests/data/models/quest_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_progress_hive_model.dart';
 import 'package:prime/features/quests/data/repositories/hive_quest_progress_repository.dart';
 import 'package:prime/features/quests/data/repositories/hive_quest_repository.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 import 'package:prime/features/xp_ledger/data/repositories/hive_xp_ledger_repository.dart';
 
@@ -38,12 +40,12 @@ Quest _buildQuest() {
     prerequisiteQuestIds: [],
     state: QuestCompletionState.notStarted,
     failureBehavior: FailureBehavior.expire,
-    // 'daily' — this test completes the same quest twice on the same day
-    // (a genuine second completion, not a raw retry), which only a
+    // Repeatability.daily — this test completes the same quest twice on the
+    // same day (a genuine second completion, not a raw retry), which only a
     // repeatable quest is allowed to do. See
     // complete_quest_use_case_test.dart's "non-repeatable quest lifetime
-    // gating" group for the null-repeatabilityRule, one-time case.
-    repeatabilityRule: 'daily',
+    // gating" group for the Repeatability.none, one-time case.
+    repeatability: Repeatability.daily,
   );
 }
 
@@ -64,12 +66,16 @@ void main() {
       final quest = _buildQuest();
       await HiveQuestRepository(await _openQuestBox()).upsert(quest);
 
+      final ledgerRepository = HiveXpLedgerRepository(await _openLedgerBox());
       final useCase = CompleteQuestUseCase(
         questRepository: HiveQuestRepository(await _openQuestBox()),
         questProgressRepository: HiveQuestProgressRepository(
           await _openProgressBox(),
         ),
-        xpLedgerRepository: HiveXpLedgerRepository(await _openLedgerBox()),
+        xpLedgerRepository: ledgerRepository,
+        occurrenceService: QuestOccurrenceService(
+          xpLedgerRepository: ledgerRepository,
+        ),
       );
 
       final command = CompleteQuestCommand(
@@ -113,6 +119,9 @@ void main() {
         questRepository: HiveQuestRepository(await _openQuestBox()),
         questProgressRepository: progressRepoAfterRestart,
         xpLedgerRepository: ledgerRepoAfterRestart,
+        occurrenceService: QuestOccurrenceService(
+          xpLedgerRepository: ledgerRepoAfterRestart,
+        ),
       );
       // A literal retry of the exact same request is simulated by re-appending
       // the already-produced transactions directly through the repository —

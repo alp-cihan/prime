@@ -1,4 +1,5 @@
 import '../../../../core/domain/attribute_type.dart';
+import 'repeatability.dart';
 import 'reward.dart';
 
 /// docs/architecture.md §5.1. `repeatable` is the internal representation
@@ -51,7 +52,7 @@ class Quest {
   final QuestCompletionState state;
   final FailureBehavior failureBehavior;
   final Reward? optionalReward;
-  final String? repeatabilityRule;
+  final Repeatability repeatability;
 
   const Quest({
     required this.id,
@@ -70,7 +71,7 @@ class Quest {
     required this.state,
     required this.failureBehavior,
     this.optionalReward,
-    this.repeatabilityRule,
+    this.repeatability = Repeatability.none,
   });
 
   Quest copyWith({
@@ -90,7 +91,7 @@ class Quest {
     QuestCompletionState? state,
     FailureBehavior? failureBehavior,
     Reward? optionalReward,
-    String? repeatabilityRule,
+    Repeatability? repeatability,
   }) {
     return Quest(
       id: id ?? this.id,
@@ -110,7 +111,7 @@ class Quest {
       state: state ?? this.state,
       failureBehavior: failureBehavior ?? this.failureBehavior,
       optionalReward: optionalReward ?? this.optionalReward,
-      repeatabilityRule: repeatabilityRule ?? this.repeatabilityRule,
+      repeatability: repeatability ?? this.repeatability,
     );
   }
 
@@ -136,7 +137,7 @@ class Quest {
         other.state == state &&
         other.failureBehavior == failureBehavior &&
         other.optionalReward == optionalReward &&
-        other.repeatabilityRule == repeatabilityRule;
+        other.repeatability == repeatability;
   }
 
   @override
@@ -160,7 +161,7 @@ class Quest {
       state,
       failureBehavior,
       optionalReward,
-      repeatabilityRule,
+      repeatability,
     ),
   );
 }

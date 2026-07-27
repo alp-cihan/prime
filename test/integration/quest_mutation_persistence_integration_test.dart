@@ -9,6 +9,7 @@ import 'package:prime/features/quests/application/models/complete_quest_result.d
 import 'package:prime/features/quests/application/models/create_quest_command.dart';
 import 'package:prime/features/quests/application/models/delete_quest_command.dart';
 import 'package:prime/features/quests/application/models/update_quest_command.dart';
+import 'package:prime/features/quests/application/services/quest_occurrence_service.dart';
 import 'package:prime/features/quests/application/use_cases/complete_quest_use_case.dart';
 import 'package:prime/features/quests/application/use_cases/create_quest_use_case.dart';
 import 'package:prime/features/quests/application/use_cases/delete_quest_use_case.dart';
@@ -145,6 +146,9 @@ void main() {
         questRepository: questRepository,
         questProgressRepository: progressRepository,
         xpLedgerRepository: ledgerRepository,
+        occurrenceService: QuestOccurrenceService(
+          xpLedgerRepository: ledgerRepository,
+        ),
       );
       final completion = await completeUseCase.execute(
         CompleteQuestCommand(

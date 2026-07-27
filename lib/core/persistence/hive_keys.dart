@@ -32,4 +32,21 @@ abstract final class HiveKeys {
   /// history), rather than from `QuestProgress`, which is upserted per day
   /// and can be overwritten by a later progress decrement.
   static String xpSourceIdQuestPrefix(String questId) => '$questId|';
+
+  /// Parses the date-key segment back out of an `XpTransaction.sourceId`
+  /// (`"questId|dateKey|repeatIndex"`, see `CompleteQuestUseCase`) into the
+  /// UTC `DateTime` it represents. Returns `null` if [sourceId] doesn't
+  /// follow that shape — every writer in this codebase produces it, so this
+  /// is only ever `null` for malformed/foreign data.
+  static DateTime? dateFromSourceId(String sourceId) {
+    final parts = sourceId.split('|');
+    if (parts.length < 2) return null;
+    final segments = parts[1].split('-');
+    if (segments.length != 3) return null;
+    final year = int.tryParse(segments[0]);
+    final month = int.tryParse(segments[1]);
+    final day = int.tryParse(segments[2]);
+    if (year == null || month == null || day == null) return null;
+    return DateTime.utc(year, month, day);
+  }
 }

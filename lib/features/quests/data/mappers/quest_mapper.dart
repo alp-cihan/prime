@@ -1,5 +1,6 @@
 import '../../../../core/domain/attribute_type.dart';
 import '../../domain/entities/quest.dart';
+import '../../domain/entities/repeatability.dart';
 import '../../domain/entities/reward.dart';
 import '../models/quest_hive_model.dart';
 
@@ -7,6 +8,12 @@ import '../models/quest_hive_model.dart';
 /// their `.name` string rather than via a generated Hive enum adapter —
 /// resilient to the enum's declaration order changing, and avoids spending
 /// a `typeId` per enum.
+///
+/// [Repeatability] is the one exception: [QuestHiveModel.repeatabilityRule]
+/// stays the original nullable `String?` (`null`/`'daily'`/`'weekly'`) it
+/// always was — Phase 9 formalizes the *domain* type without touching the
+/// persisted shape or its Hive field index, so no migration is needed and
+/// pre-Phase-9 records read back correctly unchanged.
 class QuestMapper {
   const QuestMapper();
 
@@ -31,7 +38,7 @@ class QuestMapper {
       prerequisiteQuestIds: quest.prerequisiteQuestIds,
       state: quest.state.name,
       failureBehavior: quest.failureBehavior.name,
-      repeatabilityRule: quest.repeatabilityRule,
+      repeatabilityRule: _ruleFromRepeatability(quest.repeatability),
       rewardXp: reward?.xp,
       rewardTitleId: reward?.titleId,
       rewardAchievementId: reward?.achievementId,
@@ -73,7 +80,24 @@ class QuestMapper {
               achievementId: model.rewardAchievementId,
             )
           : null,
-      repeatabilityRule: model.repeatabilityRule,
+      repeatability: _repeatabilityFromRule(model.repeatabilityRule),
     );
   }
+
+  /// Unrecognized/legacy values (including `null`) fall back to [Repeatability.none]
+  /// rather than throwing — the same permissiveness the rest of this
+  /// codebase's `.byName()` calls don't need, since this is the one field
+  /// whose persisted representation predates its domain enum.
+  Repeatability _repeatabilityFromRule(String? rule) => switch (rule) {
+    'daily' => Repeatability.daily,
+    'weekly' => Repeatability.weekly,
+    _ => Repeatability.none,
+  };
+
+  String? _ruleFromRepeatability(Repeatability repeatability) =>
+      switch (repeatability) {
+        Repeatability.none => null,
+        Repeatability.daily => 'daily',
+        Repeatability.weekly => 'weekly',
+      };
 }

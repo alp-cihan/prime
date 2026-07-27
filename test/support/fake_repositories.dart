@@ -174,10 +174,18 @@ class FakeXpLedgerRepository implements XpLedgerRepository {
 class FakeClock implements Clock {
   FakeClock(this._now);
 
-  final DateTime _now;
+  DateTime _now;
 
   @override
   DateTime now() => _now;
+
+  /// Mutates "now" in place — the same [FakeClock] instance stays installed
+  /// via `clockProvider.overrideWithValue`, so callers must still invalidate
+  /// whatever downstream provider they want to see recompute (e.g.
+  /// `todayUtcProvider`/`questOccurrenceAnchorDateProvider`); overriding a
+  /// provider with a fixed value means Riverpod never notices the object's
+  /// internal state changed on its own.
+  void advanceTo(DateTime next) => _now = next;
 }
 
 /// Minimal broadcast helper backing `FakeQuestRepository.watchAll` — mirrors

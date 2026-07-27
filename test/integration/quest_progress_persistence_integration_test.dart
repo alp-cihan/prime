@@ -5,6 +5,7 @@ import 'package:prime/core/persistence/hive_box_names.dart';
 import 'package:prime/core/domain/result.dart';
 import 'package:prime/features/quests/application/models/update_quest_progress_command.dart';
 import 'package:prime/features/quests/application/models/update_quest_progress_result.dart';
+import 'package:prime/features/quests/application/services/quest_occurrence_service.dart';
 import 'package:prime/features/quests/application/use_cases/complete_quest_use_case.dart';
 import 'package:prime/features/quests/application/use_cases/update_quest_progress_use_case.dart';
 import 'package:prime/features/quests/data/models/quest_hive_model.dart';
@@ -68,6 +69,9 @@ void main() {
         questRepository: questRepository,
         questProgressRepository: progressRepository,
         xpLedgerRepository: ledgerRepository,
+        occurrenceService: QuestOccurrenceService(
+          xpLedgerRepository: ledgerRepository,
+        ),
       ),
     );
   }

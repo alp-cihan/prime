@@ -68,7 +68,7 @@ final class TodayQuestProgressSummaryProvider
 }
 
 String _$todayQuestProgressSummaryHash() =>
-    r'00423e142aa8be060db28e2aec33aab786f5eb3c';
+    r'aa38bf5cc3cd5d4ab61475ccb2b65162e5492c6d';
 
 /// The Main Quest card's selection (docs/architecture.md §13.3): the first
 /// active quest not yet completed today, in [watchAllQuestsProvider]'s own
@@ -118,7 +118,7 @@ final class FeaturedQuestProvider
   }
 }
 
-String _$featuredQuestHash() => r'b7fca96ccdf190fa96ac4e32f7b3cf2fbdbd9644';
+String _$featuredQuestHash() => r'222f24ad4ccfac580d66d1c9abf78fb9997e15c3';
 
 /// Every XP transaction recorded today, across all quests — the Activity/XP
 /// Summary section's source of truth.

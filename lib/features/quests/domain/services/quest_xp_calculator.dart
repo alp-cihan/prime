@@ -62,8 +62,8 @@ class QuestXpCalculator {
     required double completionRatio,
     required int consecutiveDayStreak,
     int? qualityRating,
-    required int repeatIndexToday,
-    required int priorXpEarnedTodayForQuest,
+    required int repeatIndexInOccurrence,
+    required int priorXpEarnedInOccurrence,
     required bool isFirstCompletionEver,
   }) {
     final validationFailure = _validate(
@@ -71,8 +71,8 @@ class QuestXpCalculator {
       completionRatio: completionRatio,
       consecutiveDayStreak: consecutiveDayStreak,
       qualityRating: qualityRating,
-      repeatIndexToday: repeatIndexToday,
-      priorXpEarnedTodayForQuest: priorXpEarnedTodayForQuest,
+      repeatIndexInOccurrence: repeatIndexInOccurrence,
+      priorXpEarnedInOccurrence: priorXpEarnedInOccurrence,
     );
     if (validationFailure != null) {
       return Err(validationFailure);
@@ -84,7 +84,7 @@ class QuestXpCalculator {
       consecutiveDayStreak: consecutiveDayStreak,
       qualityRating: qualityRating,
       isFirstCompletionEver: isFirstCompletionEver,
-      repeatIndexToday: repeatIndexToday,
+      repeatIndexInOccurrence: repeatIndexInOccurrence,
     );
 
     final totalBaseXp = attributeXpWeights.values.fold<int>(
@@ -96,7 +96,7 @@ class QuestXpCalculator {
       rawXp: rawXp,
       totalBaseXp: totalBaseXp,
       difficultyMultiplier: modifiers.difficulty,
-      priorXpEarnedTodayForQuest: priorXpEarnedTodayForQuest,
+      priorXpEarnedInOccurrence: priorXpEarnedInOccurrence,
     );
 
     return Ok(
@@ -120,8 +120,8 @@ class QuestXpCalculator {
     required double completionRatio,
     required int consecutiveDayStreak,
     required int? qualityRating,
-    required int repeatIndexToday,
-    required int priorXpEarnedTodayForQuest,
+    required int repeatIndexInOccurrence,
+    required int priorXpEarnedInOccurrence,
   }) {
     if (attributeXpWeights.isEmpty) {
       return const ValidationFailure('attributeXpWeights must not be empty');
@@ -144,12 +144,14 @@ class QuestXpCalculator {
     if (qualityRating != null && (qualityRating < 1 || qualityRating > 5)) {
       return const ValidationFailure('qualityRating must be within 1 and 5');
     }
-    if (repeatIndexToday < 0) {
-      return const ValidationFailure('repeatIndexToday must not be negative');
-    }
-    if (priorXpEarnedTodayForQuest < 0) {
+    if (repeatIndexInOccurrence < 0) {
       return const ValidationFailure(
-        'priorXpEarnedTodayForQuest must not be negative',
+        'repeatIndexInOccurrence must not be negative',
+      );
+    }
+    if (priorXpEarnedInOccurrence < 0) {
+      return const ValidationFailure(
+        'priorXpEarnedInOccurrence must not be negative',
       );
     }
     return null;
@@ -161,7 +163,7 @@ class QuestXpCalculator {
     required int consecutiveDayStreak,
     required int? qualityRating,
     required bool isFirstCompletionEver,
-    required int repeatIndexToday,
+    required int repeatIndexInOccurrence,
   }) {
     return (
       difficulty: difficulty.xpMultiplier,
@@ -169,7 +171,9 @@ class QuestXpCalculator {
       consistency: _consistencyMultiplier(consecutiveDayStreak),
       quality: _qualityMultiplier(qualityRating),
       firstCompletionBonus: isFirstCompletionEver ? 1.25 : 1.0,
-      diminishingReturns: _diminishingReturnsMultiplier(repeatIndexToday),
+      diminishingReturns: _diminishingReturnsMultiplier(
+        repeatIndexInOccurrence,
+      ),
     );
   }
 
@@ -190,10 +194,10 @@ class QuestXpCalculator {
     required int rawXp,
     required int totalBaseXp,
     required double difficultyMultiplier,
-    required int priorXpEarnedTodayForQuest,
+    required int priorXpEarnedInOccurrence,
   }) {
     final dailyCap = (totalBaseXp * difficultyMultiplier * 2).round();
-    final headroom = max(0, dailyCap - priorXpEarnedTodayForQuest);
+    final headroom = max(0, dailyCap - priorXpEarnedInOccurrence);
     return min(rawXp, headroom);
   }
 
@@ -207,9 +211,9 @@ class QuestXpCalculator {
     return 0.8 + (qualityRating - 1) * 0.1;
   }
 
-  double _diminishingReturnsMultiplier(int repeatIndexToday) {
-    if (repeatIndexToday <= 0) return 1.0;
-    if (repeatIndexToday == 1) return 0.5;
+  double _diminishingReturnsMultiplier(int repeatIndexInOccurrence) {
+    if (repeatIndexInOccurrence <= 0) return 1.0;
+    if (repeatIndexInOccurrence == 1) return 0.5;
     return 0.25;
   }
 }

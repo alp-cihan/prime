@@ -27,7 +27,9 @@ class DurationQuestControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final today = ref.watch(todayUtcProvider);
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final controllerState = ref.watch(questProgressControllerProvider);
     final isLoading = controllerState.isLoading;
 
@@ -77,7 +79,7 @@ class DurationQuestControls extends ConsumerWidget {
                   ? null
                   : () => notifier.decrement(
                       quest.id,
-                      today,
+                      anchor,
                       amount: _decrementMinutes,
                     ),
               icon: const Icon(Icons.remove),
@@ -88,7 +90,7 @@ class DurationQuestControls extends ConsumerWidget {
                 onPressed: isLoading || atTarget
                     ? null
                     : () =>
-                          notifier.increment(quest.id, today, amount: minutes),
+                          notifier.increment(quest.id, anchor, amount: minutes),
                 icon: const Icon(Icons.add),
                 label: Text('${minutes.toInt()} min'),
               ),

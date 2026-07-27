@@ -14,21 +14,12 @@ class QuestInputValidator {
   static const maxTitleLength = 100;
   static const maxDescriptionLength = 500;
 
-  /// The only `repeatabilityRule` values the Phase 7 form can produce.
-  /// docs/architecture.md's domain field is a free `String?` (it also
-  /// mentions an arbitrary cron-like string), but nothing in this
-  /// application builds that UI yet — restricting writes to this set here
-  /// prevents a form bug from ever persisting an unsupported value, without
-  /// narrowing the domain field itself.
-  static const allowedRepeatabilityRules = {'daily', 'weekly'};
-
   Failure? validate({
     required String title,
     required String description,
     required Map<AttributeType, int> attributeXpWeights,
     required ProgressType progressType,
     required double targetProgress,
-    required String? repeatabilityRule,
   }) {
     if (title.trim().isEmpty) {
       return const ValidationFailure('Title is required.');
@@ -68,10 +59,6 @@ class QuestInputValidator {
       if (targetProgress <= 0) {
         return const ValidationFailure('Target progress must be positive.');
       }
-    }
-    if (repeatabilityRule != null &&
-        !allowedRepeatabilityRules.contains(repeatabilityRule)) {
-      return const ValidationFailure('Unsupported repeatability rule.');
     }
     return null;
   }

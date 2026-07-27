@@ -35,7 +35,6 @@ class CreateQuestUseCase {
       attributeXpWeights: command.attributeXpWeights,
       progressType: command.progressType,
       targetProgress: command.targetProgress,
-      repeatabilityRule: command.repeatabilityRule,
     );
     if (failure != null) {
       return Err(failure);
@@ -55,7 +54,7 @@ class CreateQuestUseCase {
       prerequisiteQuestIds: const [],
       state: QuestCompletionState.notStarted,
       failureBehavior: FailureBehavior.expire,
-      repeatabilityRule: command.repeatabilityRule,
+      repeatability: command.repeatability,
     );
 
     try {

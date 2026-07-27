@@ -45,9 +45,11 @@ class _FeaturedQuestContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final today = ref.watch(todayUtcProvider);
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
     final progressAsync = ref.watch(
-      questProgressForDateProvider(quest.id, today),
+      questProgressForDateProvider(quest.id, anchor),
     );
     final progress = progressAsync.value;
     final completedToday = progress?.isComplete ?? false;

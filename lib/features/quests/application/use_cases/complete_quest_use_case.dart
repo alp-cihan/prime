@@ -11,11 +11,15 @@ import '../../domain/services/quest_xp_calculator.dart';
 import '../clock.dart';
 import '../models/complete_quest_command.dart';
 import '../models/complete_quest_result.dart';
+import '../services/quest_occurrence_service.dart';
 
-/// Orchestrates one quest completion: loads the quest, derives every
-/// XP-relevant history value from the repositories (never from the caller),
-/// calls [QuestXpCalculator] exactly once at quest level, writes the
-/// resulting ledger rows, and only then upserts today's [QuestProgress].
+/// Orchestrates one quest completion: loads the quest, asks
+/// [QuestOccurrenceService] for this completion's occurrence status (the
+/// Phase 9 occurrence model's only authority on eligibility/repeat-index/
+/// first-completion facts — this use case never re-derives any of that
+/// itself), calls [QuestXpCalculator] exactly once at quest level, writes
+/// the resulting ledger rows, and only then upserts the occurrence's
+/// [QuestProgress] row.
 ///
 /// ## `XpTransaction.baseXp` — resolved semantics
 /// docs/architecture.md §15 does not define what a per-attribute
@@ -25,58 +29,53 @@ import '../models/complete_quest_result.dart';
 /// entity is: `baseXp` is the attribute's *original, pre-modifier* weight —
 /// `quest.attributeXpWeights[attribute]` — while `finalXp` is that
 /// attribute's *actual awarded* share after quest-level modifiers, the
-/// diminishing-returns/daily-cap clamp, and allocation. This keeps `baseXp`
-/// meaningful as "what this attribute was worth on this quest" (stable,
-/// quest-definition data) and `finalXp` as "what you actually got" — exactly
-/// the two numbers a "why did I get this XP" audit view (§16) needs, without
-/// inventing any new economy rule.
+/// diminishing-returns/daily-cap clamp, and allocation.
 ///
-/// ## `sourceId` / idempotency key — resolved format
-/// §15's inline comment describes `sourceId` generically ("quest id, chain
-/// milestone id, etc.") while §16 calls it "the QuestProgress completion
-/// event id" and its example idempotency formula lists `sourceId` as an
-/// input distinct from `questId`. `QuestProgress` has no separate per-event
-/// id (it is one row per `(questId, date)`, upserted — see §17), so there is
-/// no existing id to reuse. This use case constructs a deterministic
-/// synthetic event id instead: `sourceId = "questId|dateKey|repeatIndex"`.
-/// All attribute rows from one completion share this `sourceId` (§16), and
-/// counting *distinct* `sourceId`s already on the ledger for a given day is
-/// exactly how [repeatIndexToday] is derived for the next completion — so
-/// the format is self-supporting and needs no additional repository state.
-/// `idempotencyKey = "questId|attributeName|dateKey|repeatIndex"` follows
-/// the same components; retrying the exact same completion recomputes the
-/// same key, and [XpLedgerRepository.appendAll]'s documented "skip existing
-/// keys" contract makes that retry a no-op. `XpTransaction.id` reuses the
-/// idempotency key — it is already a unique, deterministic string for this
-/// row, so generating a separate random id would add nothing.
+/// ## `sourceId` / occurrence keying — resolved format
+/// `sourceId = "questId|dateKey|repeatIndex"`, where `dateKey` is
+/// [QuestOccurrenceStatus.occurrence]'s `anchorDate` — the *occurrence's*
+/// canonical date, not necessarily the literal calendar day this call
+/// happens on. For `none`/`daily` quests those are the same thing; for
+/// `weekly` quests every completion during the same ISO week shares one
+/// `anchorDate` (that week's Monday), which is exactly what buckets them
+/// into one occurrence for repeat-index/diminishing-returns/daily-cap
+/// purposes. One deliberate trade-off: the Today dashboard's "activity
+/// today" ledger view (`xpTransactionsForDateProvider`, literal-calendar-day
+/// keyed) will show a weekly quest's XP under that week's Monday rather than
+/// the exact day it was earned — accepted rather than tracking a second,
+/// purely-cosmetic "literal day earned" field on every transaction, since
+/// nothing in this phase's scope depends on that day-level fidelity for
+/// weekly quests (see the Phase 9 completion report's compromises).
+/// `idempotencyKey = "questId|attributeName|dateKey|repeatIndex"` follows the
+/// same components; retrying the exact same completion recomputes the same
+/// key, and [XpLedgerRepository.appendAll]'s documented "skip existing keys"
+/// contract makes that retry a no-op. `XpTransaction.id` reuses the
+/// idempotency key.
 ///
-/// ## Non-repeatable completion is gated for the quest's whole lifetime
-/// A quest with `repeatabilityRule == null` may earn completion XP at most
-/// once, ever — reached via any path (a fresh completion, or re-reaching
-/// the target after a Phase 8 progress decrement, same day or a later day).
-/// This is checked here, in the one place that ever writes XP, rather than
-/// in `UpdateQuestProgressUseCase`, precisely so every caller (binary
-/// complete, quantity/duration auto-complete) is protected uniformly. The
-/// check reads [XpLedgerRepository.getTransactionsForQuest] — the ledger,
-/// not `QuestProgress` — because ledger rows are append-only while
-/// `QuestProgress` is upserted per day and can have `isComplete` rewritten
-/// back to `false` by a later decrement.
+/// ## Eligibility is never derived from `QuestProgress`
+/// Whether this completion is even allowed to pay out XP comes from
+/// [QuestOccurrenceService.resolve], which reads the append-only XP ledger —
+/// never `QuestProgress`, which is upserted per occurrence and can have its
+/// `isComplete` rewritten back to `false` by a later decrement (Phase 8).
 class CompleteQuestUseCase {
   const CompleteQuestUseCase({
     required QuestRepository questRepository,
     required QuestProgressRepository questProgressRepository,
     required XpLedgerRepository xpLedgerRepository,
+    required QuestOccurrenceService occurrenceService,
     QuestXpCalculator calculator = const QuestXpCalculator(),
     Clock clock = const SystemClock(),
   }) : _questRepository = questRepository,
        _questProgressRepository = questProgressRepository,
        _xpLedgerRepository = xpLedgerRepository,
+       _occurrenceService = occurrenceService,
        _calculator = calculator,
        _clock = clock;
 
   final QuestRepository _questRepository;
   final QuestProgressRepository _questProgressRepository;
   final XpLedgerRepository _xpLedgerRepository;
+  final QuestOccurrenceService _occurrenceService;
   final QuestXpCalculator _calculator;
   final Clock _clock;
 
@@ -95,58 +94,14 @@ class CompleteQuestUseCase {
       return Err(stateFailure);
     }
 
-    final date = _normalizeDate(command.date);
-    final dateKey = HiveKeys.dateKey(date);
-
-    // 4. Read today's existing progress (if any) for this quest/date.
-    final existingProgress = await _questProgressRepository.getForQuestAndDate(
-      quest.id,
-      date,
+    // 4. Resolve this completion's occurrence — the ONLY source of
+    // eligibility, repeat index, prior-XP-this-occurrence, and
+    // first-completion-ever facts (Phase 9 occurrence model).
+    final status = await _occurrenceService.resolve(
+      quest: quest,
+      instant: command.date,
     );
-
-    // 5. Read today's existing XP transactions for this quest.
-    final todaysTransactions = await _xpLedgerRepository
-        .getTransactionsForQuestAndDate(quest.id, date);
-
-    // 6. Derive priorXpEarnedTodayForQuest and repeatIndexToday from ledger
-    // history — never from caller input.
-    final priorXpEarnedTodayForQuest = todaysTransactions.fold<int>(
-      0,
-      (sum, t) => sum + t.finalXp,
-    );
-    final repeatIndexToday = todaysTransactions
-        .map((t) => t.sourceId)
-        .toSet()
-        .length;
-
-    // 6b. Lifetime ledger history for this quest — the append-only source
-    // of truth for "has this quest ever earned completion XP". Deliberately
-    // read from the ledger, not from QuestProgress: progress rows are
-    // upserted per day and a later decrement can rewrite a day's
-    // `isComplete` back to false, which would make a progress-history-based
-    // check forget a completion that already paid out. See
-    // `HiveKeys.xpSourceIdQuestPrefix` for why the ledger doesn't have this
-    // problem.
-    final priorTransactionsForQuest = await _xpLedgerRepository
-        .getTransactionsForQuest(quest.id);
-    final hasEverBeenAwardedXp = priorTransactionsForQuest.isNotEmpty;
-    final isFirstCompletionEver = !hasEverBeenAwardedXp;
-
-    // 6c. A quest with no `repeatabilityRule` is one-time: once it has ever
-    // earned XP, it can never earn XP again, regardless of same-day
-    // decrements or later-day re-attempts. This is the only repeatability
-    // signal currently wired to anything in the domain model (the create/
-    // edit form's "Repeats" field writes it, and nothing else — see
-    // `QuestType.repeatable`'s doc comment — expresses an occurrence rule).
-    // A `repeatabilityRule` of `daily` is intentionally left ungated here:
-    // the existing per-day `repeatIndexToday`/diminishing-returns mechanism
-    // (docs/architecture.md §3.3) already prices repeats within one day,
-    // and a new calendar day is a genuinely new, already-safely-modeled
-    // occurrence. `weekly` has no enforced occurrence boundary anywhere in
-    // this codebase (no week-start/last-occurrence concept exists), so it
-    // is also left ungated rather than inventing one — see the Phase 8
-    // correction report for why this is flagged, not fixed.
-    if (quest.repeatabilityRule == null && hasEverBeenAwardedXp) {
+    if (!status.eligible) {
       return Err(
         InvalidStateFailure(
           'Quest "${quest.id}" is not repeatable and has already been '
@@ -155,7 +110,17 @@ class CompleteQuestUseCase {
       );
     }
 
-    // 7. Determine the consecutive-day streak from this quest's full
+    final date = status.occurrence.anchorDate;
+    final dateKey = HiveKeys.dateKey(date);
+
+    // 5. Read this occurrence's existing progress (if any) — its notes
+    // carry forward into the updated row below.
+    final existingProgress = await _questProgressRepository.getForQuestAndDate(
+      quest.id,
+      date,
+    );
+
+    // 6. Determine the consecutive-day streak from this quest's full
     // progress history.
     final history = await _questProgressRepository.getForQuest(quest.id);
     final consecutiveDayStreak = _consecutiveDayStreak(history, date);
@@ -164,16 +129,16 @@ class CompleteQuestUseCase {
         ? 1.0
         : (command.progressValue / quest.targetProgress).clamp(0.0, 1.0);
 
-    // 8. Call the calculator exactly once, at quest level.
+    // 7. Call the calculator exactly once, at quest level.
     final calculation = _calculator.calculate(
       attributeXpWeights: quest.attributeXpWeights,
       difficulty: quest.difficulty,
       completionRatio: completionRatio,
       consecutiveDayStreak: consecutiveDayStreak,
       qualityRating: command.qualityRating,
-      repeatIndexToday: repeatIndexToday,
-      priorXpEarnedTodayForQuest: priorXpEarnedTodayForQuest,
-      isFirstCompletionEver: isFirstCompletionEver,
+      repeatIndexInOccurrence: status.repeatIndex,
+      priorXpEarnedInOccurrence: status.priorXpEarnedInOccurrence,
+      isFirstCompletionEver: status.isFirstCompletionEver,
     );
     if (calculation is Err<QuestXpAllocation>) {
       // Calculation failed validation — propagate as-is. Nothing has been
@@ -182,9 +147,9 @@ class CompleteQuestUseCase {
     }
     final allocation = (calculation as Ok<QuestXpAllocation>).value;
 
-    // 9-10. Build immutable XpTransaction rows with deterministic ids and
+    // 8-9. Build immutable XpTransaction rows with deterministic ids and
     // idempotency keys (see class doc for the exact format).
-    final sourceId = '${quest.id}|$dateKey|$repeatIndexToday';
+    final sourceId = '${quest.id}|$dateKey|${status.repeatIndex}';
     final createdAt = _clock.now();
     final transactions = [
       for (final entry in allocation.xpByAttribute.entries)
@@ -198,16 +163,16 @@ class CompleteQuestUseCase {
           finalXp: entry.value,
           createdAt: createdAt,
           idempotencyKey:
-              '${quest.id}|${entry.key.name}|$dateKey|$repeatIndexToday',
+              '${quest.id}|${entry.key.name}|$dateKey|${status.repeatIndex}',
         ),
     ];
 
-    // 11. Append through the ledger repository (append-only, idempotent by
+    // 10. Append through the ledger repository (append-only, idempotent by
     // key — a retry with the same key is a no-op there).
     await _xpLedgerRepository.appendAll(transactions);
 
-    // 12. Only now — after validation, calculation, and the ledger write all
-    // succeeded — upsert QuestProgress.
+    // 11. Only now — after validation, calculation, and the ledger write all
+    // succeeded — upsert this occurrence's QuestProgress row.
     final updatedProgress = QuestProgress(
       questId: quest.id,
       date: date,
@@ -221,7 +186,7 @@ class CompleteQuestUseCase {
     );
     await _questProgressRepository.upsert(updatedProgress);
 
-    // 13. Return a useful result.
+    // 12. Return a useful result.
     final dailyCap = _dailyCap(quest, allocation.modifiersApplied);
     return Ok(
       CompleteQuestResult(
@@ -232,7 +197,7 @@ class CompleteQuestUseCase {
         firstCompletionBonusApplied:
             (allocation.modifiersApplied['firstCompletionBonus'] ?? 1.0) != 1.0,
         dailyCapLimited:
-            priorXpEarnedTodayForQuest + allocation.totalXp >= dailyCap,
+            status.priorXpEarnedInOccurrence + allocation.totalXp >= dailyCap,
       ),
     );
   }

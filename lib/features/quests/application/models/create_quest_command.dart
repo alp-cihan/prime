@@ -1,5 +1,6 @@
 import '../../../../core/domain/attribute_type.dart';
 import '../../domain/entities/quest.dart';
+import '../../domain/entities/repeatability.dart';
 
 /// Input to [CreateQuestUseCase] — exactly the fields Phase 7's form exposes.
 /// Deliberately absent: `id` (assigned by the injected `IdGenerator`,
@@ -15,7 +16,7 @@ class CreateQuestCommand {
   final Map<AttributeType, int> attributeXpWeights;
   final ProgressType progressType;
   final double targetProgress;
-  final String? repeatabilityRule;
+  final Repeatability repeatability;
 
   const CreateQuestCommand({
     required this.title,
@@ -25,6 +26,6 @@ class CreateQuestCommand {
     required this.attributeXpWeights,
     required this.progressType,
     required this.targetProgress,
-    this.repeatabilityRule,
+    this.repeatability = Repeatability.none,
   });
 }

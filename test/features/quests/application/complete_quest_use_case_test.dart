@@ -5,9 +5,11 @@ import 'package:prime/core/domain/result.dart';
 import 'package:prime/features/quests/application/clock.dart';
 import 'package:prime/features/quests/application/models/complete_quest_command.dart';
 import 'package:prime/features/quests/application/models/complete_quest_result.dart';
+import 'package:prime/features/quests/application/services/quest_occurrence_service.dart';
 import 'package:prime/features/quests/application/use_cases/complete_quest_use_case.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/domain/repositories/quest_progress_repository.dart';
 import 'package:prime/features/quests/domain/repositories/quest_repository.dart';
 import 'package:prime/features/xp_ledger/domain/entities/xp_transaction.dart';
@@ -148,7 +150,7 @@ Quest _buildQuest({
   ProgressType progressType = ProgressType.binary,
   double targetProgress = 1,
   QuestCompletionState state = QuestCompletionState.notStarted,
-  String? repeatabilityRule,
+  Repeatability repeatability = Repeatability.none,
 }) {
   return Quest(
     id: id,
@@ -164,7 +166,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
-    repeatabilityRule: repeatabilityRule,
+    repeatability: repeatability,
   );
 }
 
@@ -182,6 +184,7 @@ class _Harness {
     questRepository: questRepo,
     questProgressRepository: progressRepo,
     xpLedgerRepository: ledgerRepo,
+    occurrenceService: QuestOccurrenceService(xpLedgerRepository: ledgerRepo),
     clock: _FakeClock(DateTime.utc(2026, 1, 10, 9)),
   );
 }
@@ -218,10 +221,10 @@ void main() {
   test(
     'firstCompletionBonus is applied only once, not on a later day',
     () async {
-      // repeatabilityRule: 'daily' — this test completes the same quest
+      // repeatability: Repeatability.daily — this test completes the same quest
       // twice, on two different days, which only a repeatable quest is
       // allowed to do (see the "non-repeatable quest" gating group below).
-      final quest = _buildQuest(repeatabilityRule: 'daily');
+      final quest = _buildQuest(repeatability: Repeatability.daily);
       final harness = _Harness(quest: quest);
 
       final day1 = _okValue(
@@ -255,9 +258,9 @@ void main() {
   test(
     'a second completion on the same day earns diminished, additional XP',
     () async {
-      // repeatabilityRule: 'daily' — same-day repeat completion is only
+      // repeatability: Repeatability.daily — same-day repeat completion is only
       // allowed for a repeatable quest.
-      final quest = _buildQuest(repeatabilityRule: 'daily');
+      final quest = _buildQuest(repeatability: Repeatability.daily);
       final harness = _Harness(quest: quest);
       final date = DateTime.utc(2026, 1, 10);
 
@@ -282,9 +285,9 @@ void main() {
   );
 
   test('daily cap already reached produces zero additional XP', () async {
-    // repeatabilityRule: 'daily' — repeated same-day completion is only
+    // repeatability: Repeatability.daily — repeated same-day completion is only
     // allowed for a repeatable quest.
-    final quest = _buildQuest(repeatabilityRule: 'daily');
+    final quest = _buildQuest(repeatability: Repeatability.daily);
     final harness = _Harness(quest: quest);
     final date = DateTime.utc(2026, 1, 10);
 
@@ -341,12 +344,12 @@ void main() {
   test(
     'quality rating and consistency streak both flow into the final XP',
     () async {
-      // repeatabilityRule: 'daily' — this test completes the same quest on
+      // repeatability: Repeatability.daily — this test completes the same quest on
       // three different days, which only a repeatable quest is allowed to
       // do.
       final quest = _buildQuest(
         weights: {AttributeType.mindfulness: 100},
-        repeatabilityRule: 'daily',
+        repeatability: Repeatability.daily,
       );
       final harness = _Harness(quest: quest);
 
@@ -439,11 +442,12 @@ void main() {
     },
   );
 
-  group('non-repeatable quest (repeatabilityRule: null) lifetime gating', () {
+  group('non-repeatable quest (Repeatability.none) lifetime gating', () {
     test(
       'a second completion attempt on the same day is rejected, not diminished',
       () async {
-        final quest = _buildQuest(); // repeatabilityRule defaults to null.
+        final quest =
+            _buildQuest(); // repeatability defaults to Repeatability.none.
         final harness = _Harness(quest: quest);
         final date = DateTime.utc(2026, 1, 10);
 
@@ -501,9 +505,9 @@ void main() {
       expect(await harness.ledgerRepo.sumLifetimeXp(), 125);
     });
 
-    test('a repeatable quest (repeatabilityRule: daily) is not subject to the '
+    test('a repeatable quest (Repeatability.daily) is not subject to the '
         'lifetime block', () async {
-      final quest = _buildQuest(repeatabilityRule: 'daily');
+      final quest = _buildQuest(repeatability: Repeatability.daily);
       final harness = _Harness(quest: quest);
 
       await harness.useCase.execute(

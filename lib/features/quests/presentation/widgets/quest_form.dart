@@ -9,6 +9,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../application/models/create_quest_command.dart';
 import '../../application/models/update_quest_command.dart';
 import '../../domain/entities/quest.dart';
+import '../../domain/entities/repeatability.dart';
 import '../providers/quest_form_controller.dart';
 import 'attribute_allocation_editor.dart';
 import 'difficulty_selector.dart';
@@ -24,9 +25,10 @@ const _selectableQuestTypes = [
   QuestType.side,
 ];
 
-/// The user-facing repeatability options this form exposes — a dropdown
-/// over [QuestInputValidator.allowedRepeatabilityRules] plus "None".
-const _repeatabilityOptions = <String?>[null, 'daily', 'weekly'];
+/// The user-facing repeatability options this form exposes — every
+/// [Repeatability] value is selectable (the enum has no internal-only
+/// members, unlike [QuestType]).
+const _repeatabilityOptions = Repeatability.values;
 
 /// Create/edit quest form. In create mode ([questId] is null) it starts from
 /// defaults; in edit mode it is only ever constructed once
@@ -61,7 +63,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
   late QuestType _type;
   late QuestDifficulty _difficulty;
   late ProgressType _progressType;
-  String? _repeatabilityRule;
+  late Repeatability _repeatability;
   late List<AttributeAllocationRow> _attributeRows;
 
   bool get _isEditMode => widget.questId != null;
@@ -81,7 +83,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
     _targetProgressController = TextEditingController(
       text: (quest?.targetProgress ?? 1).toString(),
     );
-    _repeatabilityRule = quest?.repeatabilityRule;
+    _repeatability = quest?.repeatability ?? Repeatability.none;
     _attributeRows = quest == null || quest.attributeXpWeights.isEmpty
         ? [AttributeAllocationRow(type: AttributeType.health)]
         : [
@@ -248,21 +250,19 @@ class _QuestFormState extends ConsumerState<QuestForm> {
               }),
             ),
             const SizedBox(height: AppSpacing.sm),
-            DropdownButtonFormField<String?>(
-              initialValue: _repeatabilityRule,
+            DropdownButtonFormField<Repeatability>(
+              initialValue: _repeatability,
               decoration: const InputDecoration(labelText: 'Repeats'),
               items: [
                 for (final option in _repeatabilityOptions)
                   DropdownMenuItem(
                     value: option,
-                    child: Text(switch (option) {
-                      'daily' => 'Daily',
-                      'weekly' => 'Weekly',
-                      _ => 'One-time',
-                    }),
+                    child: Text(repeatabilityDisplayName(option)),
                   ),
               ],
-              onChanged: (next) => setState(() => _repeatabilityRule = next),
+              onChanged: (next) {
+                if (next != null) setState(() => _repeatability = next);
+              },
             ),
             const SizedBox(height: AppSpacing.lg),
             if (controllerState.hasError) ...[
@@ -321,7 +321,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
           attributeXpWeights: weights,
           progressType: _progressType,
           targetProgress: targetProgress,
-          repeatabilityRule: _repeatabilityRule,
+          repeatability: _repeatability,
         ),
       );
     } else {
@@ -334,7 +334,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
           attributeXpWeights: weights,
           progressType: _progressType,
           targetProgress: targetProgress,
-          repeatabilityRule: _repeatabilityRule,
+          repeatability: _repeatability,
         ),
       );
     }

@@ -5,6 +5,7 @@ import 'package:prime/core/domain/result.dart';
 import 'package:prime/features/quests/application/models/update_quest_command.dart';
 import 'package:prime/features/quests/application/use_cases/update_quest_use_case.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/repeatability.dart';
 import 'package:prime/features/quests/domain/entities/reward.dart';
 import 'package:prime/features/quests/domain/repositories/quest_repository.dart';
 
@@ -58,7 +59,7 @@ Quest _buildQuest({
     state: state,
     failureBehavior: FailureBehavior.carryOver,
     optionalReward: const Reward(xp: 50),
-    repeatabilityRule: 'daily',
+    repeatability: Repeatability.daily,
   );
 }
 
@@ -69,7 +70,7 @@ UpdateQuestCommand _validCommand({
   Map<AttributeType, int> attributeXpWeights = const {AttributeType.health: 80},
   ProgressType progressType = ProgressType.binary,
   double targetProgress = 1,
-  String? repeatabilityRule,
+  Repeatability repeatability = Repeatability.none,
 }) {
   return UpdateQuestCommand(
     questId: questId,
@@ -80,7 +81,7 @@ UpdateQuestCommand _validCommand({
     attributeXpWeights: attributeXpWeights,
     progressType: progressType,
     targetProgress: targetProgress,
-    repeatabilityRule: repeatabilityRule,
+    repeatability: repeatability,
   );
 }
 
@@ -134,19 +135,16 @@ void main() {
     expect(updated.optionalReward, const Reward(xp: 50));
   });
 
-  test(
-    'clearing the repeatability rule to "none" actually clears it '
-    '(direct construction, not copyWith, avoids the null-fallback trap)',
-    () async {
-      repository.quests['q1'] = _buildQuest(); // repeatabilityRule: 'daily'
+  test('clearing the repeatability to "none" actually clears it', () async {
+    repository.quests['q1'] =
+        _buildQuest(); // repeatability: Repeatability.daily
 
-      final result = await useCase.execute(
-        _validCommand(repeatabilityRule: null),
-      );
+    final result = await useCase.execute(
+      _validCommand(repeatability: Repeatability.none),
+    );
 
-      expect((result as Ok<Quest>).value.repeatabilityRule, isNull);
-    },
-  );
+    expect((result as Ok<Quest>).value.repeatability, Repeatability.none);
+  });
 
   test('does not touch QuestProgress or the XP ledger', () async {
     // UpdateQuestUseCase has no dependency on either repository at all —

@@ -251,6 +251,236 @@ final class QuestXpCalculatorProvider
 
 String _$questXpCalculatorHash() => r'd10262f22cec005a92d641d1554916de257842cd';
 
+/// Phase 9 — the occurrence model's pure-domain policy (boundaries,
+/// eligibility, anchor dates) and its application-layer composition with the
+/// XP ledger (repeat index, prior-XP-this-occurrence, first-completion-ever).
+
+@ProviderFor(questOccurrencePolicy)
+final questOccurrencePolicyProvider = QuestOccurrencePolicyProvider._();
+
+/// Phase 9 — the occurrence model's pure-domain policy (boundaries,
+/// eligibility, anchor dates) and its application-layer composition with the
+/// XP ledger (repeat index, prior-XP-this-occurrence, first-completion-ever).
+
+final class QuestOccurrencePolicyProvider
+    extends
+        $FunctionalProvider<
+          QuestOccurrencePolicy,
+          QuestOccurrencePolicy,
+          QuestOccurrencePolicy
+        >
+    with $Provider<QuestOccurrencePolicy> {
+  /// Phase 9 — the occurrence model's pure-domain policy (boundaries,
+  /// eligibility, anchor dates) and its application-layer composition with the
+  /// XP ledger (repeat index, prior-XP-this-occurrence, first-completion-ever).
+  QuestOccurrencePolicyProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'questOccurrencePolicyProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$questOccurrencePolicyHash();
+
+  @$internal
+  @override
+  $ProviderElement<QuestOccurrencePolicy> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  QuestOccurrencePolicy create(Ref ref) {
+    return questOccurrencePolicy(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(QuestOccurrencePolicy value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<QuestOccurrencePolicy>(value),
+    );
+  }
+}
+
+String _$questOccurrencePolicyHash() =>
+    r'f327174b45980dd93067194ec90eb200813a41a2';
+
+@ProviderFor(questOccurrenceService)
+final questOccurrenceServiceProvider = QuestOccurrenceServiceProvider._();
+
+final class QuestOccurrenceServiceProvider
+    extends
+        $FunctionalProvider<
+          QuestOccurrenceService,
+          QuestOccurrenceService,
+          QuestOccurrenceService
+        >
+    with $Provider<QuestOccurrenceService> {
+  QuestOccurrenceServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'questOccurrenceServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$questOccurrenceServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<QuestOccurrenceService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  QuestOccurrenceService create(Ref ref) {
+    return questOccurrenceService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(QuestOccurrenceService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<QuestOccurrenceService>(value),
+    );
+  }
+}
+
+String _$questOccurrenceServiceHash() =>
+    r'99e0c1c904f2f896f7dfc680811822d7b37c9e61';
+
+/// The date to read/write a given [repeatability]'s `QuestProgress` under
+/// right now — a UI-facing wrapper over [QuestOccurrencePolicy.resolve], so
+/// no widget ever computes an occurrence boundary itself (Phase 9: "Widgets
+/// must never calculate dates"). Backed by [clockProvider] for the same
+/// testability reason as [todayUtcProvider]. Keyed by [Repeatability] alone
+/// (not by quest id) since the anchor date only depends on the cadence and
+/// the clock — every quest sharing a cadence shares the same anchor, so
+/// Riverpod caches and invalidates exactly one instance per cadence.
+
+@ProviderFor(questOccurrenceAnchorDate)
+final questOccurrenceAnchorDateProvider = QuestOccurrenceAnchorDateFamily._();
+
+/// The date to read/write a given [repeatability]'s `QuestProgress` under
+/// right now — a UI-facing wrapper over [QuestOccurrencePolicy.resolve], so
+/// no widget ever computes an occurrence boundary itself (Phase 9: "Widgets
+/// must never calculate dates"). Backed by [clockProvider] for the same
+/// testability reason as [todayUtcProvider]. Keyed by [Repeatability] alone
+/// (not by quest id) since the anchor date only depends on the cadence and
+/// the clock — every quest sharing a cadence shares the same anchor, so
+/// Riverpod caches and invalidates exactly one instance per cadence.
+
+final class QuestOccurrenceAnchorDateProvider
+    extends $FunctionalProvider<DateTime, DateTime, DateTime>
+    with $Provider<DateTime> {
+  /// The date to read/write a given [repeatability]'s `QuestProgress` under
+  /// right now — a UI-facing wrapper over [QuestOccurrencePolicy.resolve], so
+  /// no widget ever computes an occurrence boundary itself (Phase 9: "Widgets
+  /// must never calculate dates"). Backed by [clockProvider] for the same
+  /// testability reason as [todayUtcProvider]. Keyed by [Repeatability] alone
+  /// (not by quest id) since the anchor date only depends on the cadence and
+  /// the clock — every quest sharing a cadence shares the same anchor, so
+  /// Riverpod caches and invalidates exactly one instance per cadence.
+  QuestOccurrenceAnchorDateProvider._({
+    required QuestOccurrenceAnchorDateFamily super.from,
+    required Repeatability super.argument,
+  }) : super(
+         retry: null,
+         name: r'questOccurrenceAnchorDateProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$questOccurrenceAnchorDateHash();
+
+  @override
+  String toString() {
+    return r'questOccurrenceAnchorDateProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<DateTime> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  DateTime create(Ref ref) {
+    final argument = this.argument as Repeatability;
+    return questOccurrenceAnchorDate(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DateTime value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DateTime>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is QuestOccurrenceAnchorDateProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$questOccurrenceAnchorDateHash() =>
+    r'f46ebe4c611cafe4740cbbdc98c6ba1b19efc6d1';
+
+/// The date to read/write a given [repeatability]'s `QuestProgress` under
+/// right now — a UI-facing wrapper over [QuestOccurrencePolicy.resolve], so
+/// no widget ever computes an occurrence boundary itself (Phase 9: "Widgets
+/// must never calculate dates"). Backed by [clockProvider] for the same
+/// testability reason as [todayUtcProvider]. Keyed by [Repeatability] alone
+/// (not by quest id) since the anchor date only depends on the cadence and
+/// the clock — every quest sharing a cadence shares the same anchor, so
+/// Riverpod caches and invalidates exactly one instance per cadence.
+
+final class QuestOccurrenceAnchorDateFamily extends $Family
+    with $FunctionalFamilyOverride<DateTime, Repeatability> {
+  QuestOccurrenceAnchorDateFamily._()
+    : super(
+        retry: null,
+        name: r'questOccurrenceAnchorDateProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The date to read/write a given [repeatability]'s `QuestProgress` under
+  /// right now — a UI-facing wrapper over [QuestOccurrencePolicy.resolve], so
+  /// no widget ever computes an occurrence boundary itself (Phase 9: "Widgets
+  /// must never calculate dates"). Backed by [clockProvider] for the same
+  /// testability reason as [todayUtcProvider]. Keyed by [Repeatability] alone
+  /// (not by quest id) since the anchor date only depends on the cadence and
+  /// the clock — every quest sharing a cadence shares the same anchor, so
+  /// Riverpod caches and invalidates exactly one instance per cadence.
+
+  QuestOccurrenceAnchorDateProvider call(Repeatability repeatability) =>
+      QuestOccurrenceAnchorDateProvider._(argument: repeatability, from: this);
+
+  @override
+  String toString() => r'questOccurrenceAnchorDateProvider';
+}
+
 /// Composes the quest-completion use case from the repository/service
 /// singletons above plus [xpLedgerRepositoryProvider] (xp_ledger feature).
 /// `CompleteQuestUseCase` itself holds no mutable state, so recreating it
@@ -314,7 +544,7 @@ final class CompleteQuestUseCaseProvider
 }
 
 String _$completeQuestUseCaseHash() =>
-    r'de99bdc03148ed2eef37c21929d2f9cb62cfa756';
+    r'40e0891b23cb1d123814155b25e2c1ef80d43167';
 
 @ProviderFor(idGenerator)
 final idGeneratorProvider = IdGeneratorProvider._();
@@ -669,4 +899,4 @@ final class UpdateQuestProgressUseCaseProvider
 }
 
 String _$updateQuestProgressUseCaseHash() =>
-    r'fbdf78c3dec6b24c6297f1e4413d03fb1a1880fc';
+    r'243a4ee0de9f681def466d264189f194b1b466b4';
