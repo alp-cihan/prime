@@ -5,10 +5,11 @@ import '../../../../core/design_system/design_system.dart';
 import '../../../xp_ledger/presentation/models/player_level_summary.dart';
 import '../../../xp_ledger/presentation/providers/player_level_providers.dart';
 
-/// Today dashboard §13.1 Player Header — compact, single-row-feeling card:
-/// current level, total XP, and a thin progress bar toward the next level.
-/// Section-scoped loading/error so a slow/failed player-level read never
-/// blanks the rest of the dashboard.
+/// Today dashboard §13.1 Player Header — now a cinematic hero card: a
+/// time-of-day greeting, current level, lifetime XP, a progress ring toward
+/// the next level, and a short motivational line. Section-scoped
+/// loading/error so a slow/failed player-level read never blanks the rest
+/// of the dashboard.
 class PlayerHeader extends ConsumerWidget {
   const PlayerHeader({super.key});
 
@@ -29,6 +30,27 @@ class PlayerHeader extends ConsumerWidget {
   }
 }
 
+/// Deterministic, presentation-only line — no new provider or persisted
+/// state; a small fixed rotation keyed off the current level keeps it
+/// stable within a session without inventing a "motivation" domain concept.
+const _motivationalLines = [
+  'Small consistent steps compound.',
+  'Momentum is built one quest at a time.',
+  'Discipline today, progress tomorrow.',
+  'Show up — the rest follows.',
+  'Every rep counts toward the next level.',
+];
+
+String _motivationalLine(int level) =>
+    _motivationalLines[level % _motivationalLines.length];
+
+String _greeting(DateTime now) {
+  if (now.hour < 5) return 'Good night';
+  if (now.hour < 12) return 'Good morning';
+  if (now.hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 class _PlayerHeaderContent extends StatelessWidget {
   const _PlayerHeaderContent({required this.summary});
 
@@ -39,55 +61,72 @@ class _PlayerHeaderContent extends StatelessWidget {
     final theme = Theme.of(context);
     final progress = summary.progressRatio.clamp(0.0, 1.0);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GradientSurfaceCard(
+      gradient: AppGradients.hero,
+      borderRadius: 24,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            _greeting(DateTime.now()),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColors.darkTextSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Level ${summary.currentLevel}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              // Lifetime XP has no upper bound — this side must be allowed
-              // to shrink/truncate rather than overflow a narrow screen.
               Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Level ${summary.currentLevel}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${formatXp(summary.totalXp)} XP total',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              ProgressRing(
+                progress: progress,
+                size: 64,
+                strokeWidth: 6,
                 child: Text(
-                  '${summary.totalXp} XP total',
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.darkTextSecondary,
+                  '${(progress * 100).round()}%',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: AppColors.darkSurfaceRaised,
-              valueColor: const AlwaysStoppedAnimation(AppColors.accent),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
           Text(
             '${summary.xpIntoCurrentLevel} / ${summary.xpNeededForNextLevel} XP to next level',
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.darkTextSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            _motivationalLine(summary.currentLevel),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.darkTextSecondary,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ],
@@ -103,11 +142,11 @@ class _PlayerHeaderSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 84,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      height: 168,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(16),
+        gradient: AppGradients.hero,
+        borderRadius: BorderRadius.circular(24),
       ),
       child: const Center(
         child: SizedBox(

@@ -29,69 +29,70 @@ class QuestCard extends StatelessWidget {
     );
     final primaryAttribute = _primaryAttribute(quest.attributeXpWeights);
 
-    return Material(
-      color: AppColors.darkSurface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return GradientSurfaceCard(
+      borderRadius: 16,
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: QuestVisual(
+              seed: quest.id,
+              icon: primaryAttribute == null
+                  ? null
+                  : attributeIcon(primaryAttribute),
+              height: 48,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  quest.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium,
+                ),
+                if (quest.description.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    quest.description,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.darkTextSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.xs,
                   children: [
-                    Text(
-                      quest.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    if (quest.description.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        quest.description,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.darkTextSecondary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.xs,
-                      children: [
-                        _Chip(
-                          label: questDifficultyDisplayName(quest.difficulty),
-                        ),
-                        _Chip(label: '$baseXp XP'),
-                        if (primaryAttribute != null)
-                          _Chip(label: attributeDisplayName(primaryAttribute)),
-                      ],
-                    ),
-                    _CompactProgress(
-                      quest: quest,
-                      todayProgress: todayProgress,
-                    ),
+                    _Chip(label: questDifficultyDisplayName(quest.difficulty)),
+                    _Chip(label: '${formatXp(baseXp)} XP'),
+                    if (primaryAttribute != null)
+                      _Chip(label: attributeDisplayName(primaryAttribute)),
                   ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Padding(
-                padding: EdgeInsets.only(top: AppSpacing.xs),
-                child: Icon(
-                  Icons.chevron_right,
-                  color: AppColors.darkTextSecondary,
-                ),
-              ),
-            ],
+                _CompactProgress(quest: quest, todayProgress: todayProgress),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.sm),
+          const Padding(
+            padding: EdgeInsets.only(top: AppSpacing.xs),
+            child: Icon(
+              Icons.chevron_right,
+              color: AppColors.darkTextSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

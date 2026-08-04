@@ -6,27 +6,22 @@ import '../../../../core/domain/attribute_type.dart';
 import '../../../xp_ledger/presentation/widgets/attribute_xp_tile.dart';
 import '../providers/today_dashboard_providers.dart';
 
-/// Today dashboard §13 Activity/XP Summary — today's total XP plus a
-/// per-attribute breakdown, reusing [AttributeXpTile] (already used on the
-/// You tab's lifetime summary). Only attributes with non-zero XP today are
-/// rendered — [todayXpByAttributeProvider] never includes zero entries.
+/// Today dashboard "Growth today" section — the top 3 attributes with
+/// non-zero XP today, sorted highest-first, reusing [AttributeXpTile]
+/// (already used on the You tab's lifetime summary). The day's overall XP
+/// total lives on [DailyProgressCard]'s "Daily momentum" card, not here, so
+/// this section is purely about attribute-level growth. Capped at 3 per the
+/// "no more than three attributes shown at once on Today" UI rule.
 class TodayXpSummary extends ConsumerWidget {
   const TodayXpSummary({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final totalAsync = ref.watch(todayXpTotalProvider);
     final byAttributeAsync = ref.watch(todayXpByAttributeProvider);
     final theme = Theme.of(context);
 
-    if (totalAsync.isLoading || byAttributeAsync.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (totalAsync.hasError) {
-      return _TodayXpSummaryError(
-        error: totalAsync.error!,
-        onRetry: () => ref.invalidate(todayXpTotalProvider),
-      );
+    if (byAttributeAsync.isLoading) {
+      return const _GrowthTodaySkeleton();
     }
     if (byAttributeAsync.hasError) {
       return _TodayXpSummaryError(
@@ -35,35 +30,60 @@ class TodayXpSummary extends ConsumerWidget {
       );
     }
 
-    final total = totalAsync.value ?? 0;
     final byAttribute = byAttributeAsync.value ?? const <AttributeType, int>{};
+    final topAttributes = byAttribute.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final shown = topAttributes.take(3).toList();
+    final maxXp = shown.isEmpty ? 0 : shown.first.value;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('XP earned today', style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        if (total == 0)
-          Text(
-            'No XP earned today',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.darkTextSecondary,
-            ),
-          )
-        else ...[
-          Text(
-            '$total XP',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: AppColors.accent,
-            ),
-          ),
+    return GradientSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Growth today', style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
-          for (final entry in byAttribute.entries) ...[
-            AttributeXpTile(attribute: entry.key, xp: entry.value),
-            const SizedBox(height: AppSpacing.sm),
-          ],
+          if (shown.isEmpty)
+            Text(
+              'No XP earned today',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.darkTextSecondary,
+              ),
+            )
+          else
+            for (final entry in shown) ...[
+              AttributeXpTile(
+                attribute: entry.key,
+                xp: entry.value,
+                progress: maxXp == 0 ? 0 : entry.value / maxXp,
+              ),
+              if (entry != shown.last) const SizedBox(height: AppSpacing.sm),
+            ],
         ],
-      ],
+      ),
+    );
+  }
+}
+
+class _GrowthTodaySkeleton extends StatelessWidget {
+  const _GrowthTodaySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 96,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
     );
   }
 }
@@ -80,18 +100,26 @@ class _TodayXpSummaryError extends StatelessWidget {
     // rendered directly.
     debugPrint("Today's XP summary failed to load: $error");
 
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            "Couldn't load today's XP.",
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.darkTextSecondary,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.darkSurface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              "Couldn't load today's XP.",
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.darkTextSecondary,
+              ),
             ),
           ),
-        ),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
-      ],
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
     );
   }
 }

@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   static const Color accent = Color(0xFF5E8BFF);
 
+  /// Gradient endpoint only — paired with [accent] on the hero player header
+  /// and the featured-quest CTA, nowhere else. The rest of the app stays
+  /// single-accent, grayscale-dominant per the UI rules; this is a scoped,
+  /// restrained exception for two cinematic surfaces, not a second palette.
+  static const Color accentSecondary = Color(0xFF8B6BFF);
+
   static const Color darkBackground = Color(0xFF0A0A0B);
   static const Color darkSurface = Color(0xFF17171A);
   static const Color darkSurfaceRaised = Color(0xFF212126);

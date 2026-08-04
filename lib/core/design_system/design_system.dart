@@ -1,6 +1,12 @@
+export 'attribute_visuals.dart';
 export 'domain_display_names.dart';
+export 'format_number.dart';
 export 'tokens/app_colors.dart';
+export 'tokens/app_gradients.dart';
 export 'tokens/app_spacing.dart';
 export 'tokens/app_typography.dart';
 export 'widgets/coming_soon_view.dart';
+export 'widgets/gradient_surface_card.dart';
 export 'widgets/prime_page_scaffold.dart';
+export 'widgets/progress_ring.dart';
+export 'widgets/quest_visual.dart';

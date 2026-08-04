@@ -4,65 +4,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design_system/design_system.dart';
 import '../providers/today_dashboard_providers.dart';
 
-/// Today dashboard §13.2 — a restrained circular indicator standing in for
-/// the Daily Score ring, backed by [todayQuestProgressSummaryProvider]'s
-/// completion ratio over active quests (not a stored score model; see that
-/// provider's doc for why).
+/// Today dashboard §13.2 "Daily momentum" — a compact, energetic radial
+/// indicator standing in for the Daily Score ring, backed by
+/// [todayQuestProgressSummaryProvider]'s completion ratio over active
+/// quests (not a stored score model; see that provider's doc for why),
+/// paired with [todayXpTotalProvider]'s XP-earned-today figure so momentum
+/// and reward read as one composition.
 class DailyProgressCard extends ConsumerWidget {
   const DailyProgressCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(todayQuestProgressSummaryProvider);
+    final xpAsync = ref.watch(todayXpTotalProvider);
 
-    return summaryAsync.when(
-      data: (summary) => _DailyProgressContent(summary: summary),
-      loading: () => const _DailyProgressSkeleton(),
-      error: (error, stackTrace) {
-        debugPrint('Today quest progress summary failed to load: $error');
-        return _DailyProgressError(
-          onRetry: () => ref.invalidate(todayQuestProgressSummaryProvider),
-        );
-      },
+    if (summaryAsync.isLoading || xpAsync.isLoading) {
+      return const _DailyProgressSkeleton();
+    }
+    if (summaryAsync.hasError) {
+      debugPrint(
+        "Today's quest progress summary failed to load: "
+        '${summaryAsync.error}',
+      );
+      return _DailyProgressError(
+        onRetry: () => ref.invalidate(todayQuestProgressSummaryProvider),
+      );
+    }
+    if (xpAsync.hasError) {
+      debugPrint("Today's XP total failed to load: ${xpAsync.error}");
+      return _DailyProgressError(
+        onRetry: () => ref.invalidate(todayXpTotalProvider),
+      );
+    }
+
+    return _DailyProgressContent(
+      summary: summaryAsync.value!,
+      todayXp: xpAsync.value ?? 0,
     );
   }
 }
 
 class _DailyProgressContent extends StatelessWidget {
-  const _DailyProgressContent({required this.summary});
+  const _DailyProgressContent({required this.summary, required this.todayXp});
 
   final TodayQuestProgressSummary summary;
+  final int todayXp;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GradientSurfaceCard(
       child: Row(
         children: [
-          SizedBox(
-            width: 56,
-            height: 56,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: summary.completionRatio,
-                  strokeWidth: 5,
-                  backgroundColor: AppColors.darkSurfaceRaised,
-                  valueColor: const AlwaysStoppedAnimation(AppColors.accent),
-                ),
-                Text(
-                  '${(summary.completionRatio * 100).round()}%',
-                  style: theme.textTheme.labelSmall,
-                ),
-              ],
+          ProgressRing(
+            progress: summary.completionRatio,
+            size: 56,
+            strokeWidth: 5,
+            child: Text(
+              '${(summary.completionRatio * 100).round()}%',
+              style: theme.textTheme.labelSmall,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -70,14 +71,26 @@ class _DailyProgressContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Today', style: theme.textTheme.titleMedium),
+                Text('Daily momentum', style: theme.textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   summary.totalActiveQuests == 0
                       ? 'No quests yet'
                       : '${summary.completedToday} of ${summary.totalActiveQuests} quests completed',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.darkTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '${formatXp(todayXp)} XP today',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -96,11 +109,11 @@ class _DailyProgressSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 88,
+      height: 96,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: const Center(
         child: SizedBox(
@@ -125,7 +138,7 @@ class _DailyProgressError extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [

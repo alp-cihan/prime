@@ -8,9 +8,9 @@ import 'widgets/today_quest_list.dart';
 import 'widgets/today_xp_summary.dart';
 
 /// The Today dashboard (docs/architecture.md §13, Phase 6 MVP subset):
-/// Player Header, Daily Progress, Main Quest, Daily Quest List, and
-/// Activity/XP Summary. Boss/Story card and Identity Evidence are later
-/// phases, deliberately not included here.
+/// Hero Player Header, Featured (Main) Quest, Daily Momentum, Daily Quest
+/// List, and Growth Today (Activity/XP Summary). Boss/Story card and
+/// Identity Evidence are later phases, deliberately not included here.
 ///
 /// Each section owns its own provider watch and loading/error/empty state —
 /// a slow or failed section never blanks the rest of the dashboard.
@@ -26,9 +26,9 @@ class TodayPage extends StatelessWidget {
         children: const [
           PlayerHeader(),
           SizedBox(height: AppSpacing.lg),
-          DailyProgressCard(),
-          SizedBox(height: AppSpacing.lg),
           FeaturedQuestCard(),
+          SizedBox(height: AppSpacing.lg),
+          DailyProgressCard(),
           SizedBox(height: AppSpacing.lg),
           TodayQuestList(),
           SizedBox(height: AppSpacing.lg),

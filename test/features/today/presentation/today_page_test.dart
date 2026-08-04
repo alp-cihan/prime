@@ -37,6 +37,21 @@ Quest _buildQuest({
   );
 }
 
+XpTransaction _xpTx(AttributeType attribute, int finalXp) {
+  final sourceId = '${attribute.name}|2026-01-10|0';
+  return XpTransaction(
+    id: sourceId,
+    sourceType: XpSourceType.manualAdjustment,
+    sourceId: sourceId,
+    attribute: attribute,
+    baseXp: finalXp,
+    modifiersApplied: const {},
+    finalXp: finalXp,
+    createdAt: _today,
+    idempotencyKey: sourceId,
+  );
+}
+
 Widget _harness(List<Override> overrides) {
   final router = GoRouter(
     initialLocation: '/',
@@ -61,10 +76,14 @@ Widget _harness(List<Override> overrides) {
 
 /// The dashboard has more content than the default test surface (800x600),
 /// and `ListView` virtualizes children outside the viewport — without this,
-/// sections below the fold (e.g. Today's XP Summary) are never mounted, so
+/// sections below the fold (e.g. Growth Today) are never mounted, so
 /// `find.text` cannot locate them no matter how long `pumpAndSettle` runs.
-void _growViewport(WidgetTester tester) {
-  tester.view.physicalSize = const Size(800, 3000);
+void _growViewport(
+  WidgetTester tester, {
+  double width = 800,
+  double height = 3000,
+}) {
+  tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -105,71 +124,108 @@ void main() {
       find.textContaining(
         'No quests yet. Quests you create will show up here.',
       ),
-      findsWidgets, // both the Main Quest card and the quest list show this
+      findsWidgets, // both the featured quest card and the quest list show this
     );
-    expect(find.text('No XP earned today'), findsOneWidget);
+    expect(find.text('No quests yet'), findsOneWidget); // Daily momentum card
+    expect(find.text('No XP earned today'), findsOneWidget); // Growth today
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders player level, featured quest, and today\'s XP', (
-    tester,
-  ) async {
-    _growViewport(tester);
-    final questRepository = FakeQuestRepository()
-      ..quests['q1'] = _buildQuest(id: 'q1', title: 'Workout')
-      ..quests['q2'] = _buildQuest(id: 'q2', title: 'Read');
-    final progressRepository = FakeQuestProgressRepository()
-      ..entries.add(
-        QuestProgress(
-          questId: 'q1',
-          date: _today,
-          progressValue: 1,
-          isComplete: true,
-        ),
+  testWidgets(
+    'renders player level, featured quest, daily momentum, and quest list',
+    (tester) async {
+      _growViewport(tester);
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest(id: 'q1', title: 'Workout')
+        ..quests['q2'] = _buildQuest(id: 'q2', title: 'Read');
+      final progressRepository = FakeQuestProgressRepository()
+        ..entries.add(
+          QuestProgress(
+            questId: 'q1',
+            date: _today,
+            progressValue: 1,
+            isComplete: true,
+          ),
+        );
+      final ledgerRepository = FakeXpLedgerRepository()
+        ..byKey['q1|health|2026-01-10|0'] = XpTransaction(
+          id: 'x1',
+          sourceType: XpSourceType.quest,
+          sourceId: 'q1|2026-01-10|0',
+          attribute: AttributeType.health,
+          baseXp: 60,
+          modifiersApplied: const {},
+          finalXp: 75,
+          createdAt: _today,
+          idempotencyKey: 'q1|health|2026-01-10|0',
+        );
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: progressRepository,
+        xpLedgerRepository: ledgerRepository,
+        today: _today,
       );
-    final ledgerRepository = FakeXpLedgerRepository()
-      ..byKey['q1|health|2026-01-10|0'] = XpTransaction(
-        id: 'x1',
-        sourceType: XpSourceType.quest,
-        sourceId: 'q1|2026-01-10|0',
-        attribute: AttributeType.health,
-        baseXp: 60,
-        modifiersApplied: const {},
-        finalXp: 75,
-        createdAt: _today,
-        idempotencyKey: 'q1|health|2026-01-10|0',
+
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      // Player header: 75 total XP, still Level 1.
+      expect(find.text('Level 1'), findsOneWidget);
+      expect(find.textContaining('75 XP total'), findsOneWidget);
+
+      // Daily momentum: 1 of 2 quests completed today, plus today's XP.
+      expect(find.textContaining('1 of 2 quests completed'), findsOneWidget);
+      expect(find.text('75 XP today'), findsOneWidget);
+
+      // Featured quest: q1 already complete today, so q2 ("Read") is featured
+      // — it renders both in the featured card and the Daily Quest List.
+      expect(find.text('Read'), findsWidgets);
+
+      // The quest list shows both quests, one marked complete.
+      expect(find.text('Workout'), findsWidgets);
+      expect(find.text('Completed today'), findsOneWidget);
+
+      // Growth today: a single attribute tile for Health.
+      expect(find.text('Growth today'), findsOneWidget);
+      expect(find.text('75 XP'), findsOneWidget); // attribute tile only now
+      expect(find.text('Health'), findsWidgets); // quest chips + attribute tile
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Growth today shows at most 3 attributes, sorted highest XP first',
+    (tester) async {
+      _growViewport(tester);
+      final ledgerRepository = FakeXpLedgerRepository()
+        ..byKey['health'] = _xpTx(AttributeType.health, 100)
+        ..byKey['strength'] = _xpTx(AttributeType.strength, 90)
+        ..byKey['discipline'] = _xpTx(AttributeType.discipline, 80)
+        ..byKey['knowledge'] = _xpTx(AttributeType.knowledge, 70);
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: ledgerRepository,
+        today: _today,
       );
-    final overrides = fakeProviderOverrides(
-      questRepository: questRepository,
-      questProgressRepository: progressRepository,
-      xpLedgerRepository: ledgerRepository,
-      today: _today,
-    );
 
-    await tester.pumpWidget(_harness(overrides));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
 
-    // Player header: 75 total XP, still Level 1.
-    expect(find.text('Level 1'), findsOneWidget);
-    expect(find.textContaining('75 XP total'), findsOneWidget);
+      expect(find.text('Health'), findsOneWidget);
+      expect(find.text('Strength'), findsOneWidget);
+      expect(find.text('Discipline'), findsOneWidget);
+      expect(find.text('Knowledge'), findsNothing);
 
-    // Daily progress: 1 of 2 quests completed today.
-    expect(find.textContaining('1 of 2 quests completed'), findsOneWidget);
+      expect(find.text('100 XP'), findsOneWidget);
+      expect(find.text('90 XP'), findsOneWidget);
+      expect(find.text('80 XP'), findsOneWidget);
+      expect(find.text('70 XP'), findsNothing);
 
-    // Featured quest: q1 already complete today, so q2 ("Read") is featured —
-    // it renders both in the Main Quest card and the Daily Quest List.
-    expect(find.text('Read'), findsWidgets);
-
-    // The quest list shows both quests, one marked complete.
-    expect(find.text('Workout'), findsWidgets);
-    expect(find.text('Completed today'), findsOneWidget);
-
-    // Today's XP summary.
-    expect(find.text('75 XP'), findsWidgets); // headline + attribute tile
-    expect(find.text('Health'), findsWidgets); // quest chips + attribute tile
-
-    expect(tester.takeException(), isNull);
-  });
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('tapping the featured quest navigates to its detail route', (
     tester,
@@ -219,10 +275,7 @@ void main() {
     'a very long quest title renders without overflow on a narrow phone '
     'viewport',
     (tester) async {
-      tester.view.physicalSize = const Size(360, 690); // a small phone
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+      _growViewport(tester, width: 360, height: 690);
 
       final longTitle =
           'Read a full chapter of a very long book about distributed '
@@ -233,6 +286,33 @@ void main() {
         questRepository: questRepository,
         questProgressRepository: FakeQuestProgressRepository(),
         xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'the full dashboard renders without overflow on a narrow phone viewport '
+    'with a large lifetime XP total',
+    (tester) async {
+      _growViewport(tester, width: 360, height: 1400);
+
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest(id: 'q1', title: 'Workout')
+        ..quests['q2'] = _buildQuest(id: 'q2', title: 'Read');
+      final ledgerRepository = FakeXpLedgerRepository()
+        ..byKey['health'] = _xpTx(AttributeType.health, 1234567)
+        ..byKey['strength'] = _xpTx(AttributeType.strength, 890)
+        ..byKey['discipline'] = _xpTx(AttributeType.discipline, 12);
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: ledgerRepository,
         today: _today,
       );
 
