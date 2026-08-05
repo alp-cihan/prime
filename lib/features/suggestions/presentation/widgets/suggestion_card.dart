@@ -6,9 +6,15 @@ import '../../application/models/create_quest_from_suggestion_outcome.dart';
 import '../../domain/entities/quest_suggestion.dart';
 import '../providers/suggestion_creation_controller.dart';
 
-/// Image-forward suggestion card for the Suggestions page grid — reuses the
-/// Phase 15 visual system (`GradientSurfaceCard`, `QuestVisual`) so a
-/// suggestion reads as inspirational, not like a settings row.
+/// Image-forward suggestion card for the Suggestions page's single-column
+/// list — reuses the Phase 15 visual system (`GradientSurfaceCard`,
+/// `QuestVisual`) so a suggestion reads as inspirational, not like a
+/// settings row. The photo is the card's focal point and text is
+/// deliberately secondary: [_photoHeight] is fixed, while the text block
+/// below sizes itself to its content (title/description each capped at 2
+/// lines, never a fixed height) — with that cap, the two together land
+/// close to a 55/45 photo-to-text split for typical two-line content,
+/// without ever risking the overflow a hard-coded total height would.
 class SuggestionCard extends ConsumerWidget {
   const SuggestionCard({
     super.key,
@@ -23,6 +29,8 @@ class SuggestionCard extends ConsumerWidget {
   /// Called once, the first time this card's add action reaches a terminal
   /// (non-error) outcome — the caller shows a SnackBar/opens the quest.
   final ValueChanged<CreateQuestFromSuggestionOutcome> onAdded;
+
+  static const _photoHeight = 210.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,34 +62,31 @@ class SuggestionCard extends ConsumerWidget {
           QuestVisual(
             seed: suggestion.visualKey,
             icon: attributeIcon(suggestion.primaryAttribute),
-            height: 84,
+            height: _photoHeight,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   suggestion.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
+                  maxLines: 2,
+                  overflow: TextOverflow.clip,
+                  style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   suggestion.description,
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: AppSpacing.xs,
                   runSpacing: AppSpacing.xs,
@@ -93,13 +98,13 @@ class SuggestionCard extends ConsumerWidget {
                     _MetaChip(label: '$baseXp XP'),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.sm),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),

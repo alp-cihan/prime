@@ -54,7 +54,7 @@ Widget _harness(List<Override> overrides) {
 }
 
 void main() {
-  testWidgets('renders a personalized heading and a grid of suggestion cards', (
+  testWidgets('renders a personalized heading and a list of suggestion cards', (
     tester,
   ) async {
     final overrides = fakeProviderOverrides(

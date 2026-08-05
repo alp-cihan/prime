@@ -65,27 +65,20 @@ class SuggestionsPage extends ConsumerWidget {
                   if (suggestions.isEmpty) {
                     return const _EmptySuggestions();
                   }
-                  return GridView.builder(
+                  // Single-column, image-forward list — each card sizes
+                  // itself from its own content (see SuggestionCard's own
+                  // doc comment for the height/ratio reasoning), so this is
+                  // a plain vertical list, not a grid.
+                  return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.lg,
                       0,
                       AppSpacing.lg,
                       AppSpacing.lg,
                     ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: AppSpacing.sm,
-                          crossAxisSpacing: AppSpacing.sm,
-                          // Deliberately generous — real browser font metrics
-                          // run taller than the test environment's, and a
-                          // 2-line description plus 3 meta chips needs the
-                          // headroom (a tighter ratio here previously
-                          // overflowed on real devices; see the Phase 16
-                          // implementation report for how this was found).
-                          childAspectRatio: 0.62,
-                        ),
                     itemCount: suggestions.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: AppSpacing.md),
                     itemBuilder: (context, index) {
                       final suggestion = suggestions[index];
                       return SuggestionCard(
