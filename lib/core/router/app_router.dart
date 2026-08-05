@@ -14,6 +14,9 @@ import '../../features/quests/presentation/quest_detail_page.dart';
 import '../../features/quests/presentation/quests_page.dart';
 import '../../features/settings/presentation/settings_page.dart';
 import '../../features/story/presentation/story_page.dart';
+import '../../features/suggestions/presentation/recommendation_profile_editor_page.dart';
+import '../../features/suggestions/presentation/suggestion_detail_page.dart';
+import '../../features/suggestions/presentation/suggestions_page.dart';
 import '../../features/today/presentation/today_page.dart';
 import '../../features/you/presentation/you_page.dart';
 import 'app_routes.dart';
@@ -164,6 +167,29 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.focus,
         builder: (context, state) => const FocusPage(),
+      ),
+      // Outside the shell, same reasoning as focus/onboarding — Phase 16's
+      // Suggestions flow has entry points from several different tabs, so
+      // it isn't naturally owned by any one shell branch.
+      GoRoute(
+        path: AppRoutes.suggestions,
+        builder: (context, state) => const SuggestionsPage(),
+        routes: [
+          // `preferences` declared before `:suggestionId` — same
+          // sibling-route ordering reason as `questNew` vs. `questDetail`.
+          GoRoute(
+            path: AppRoutes.suggestionsPreferencesSegment,
+            builder: (context, state) =>
+                const RecommendationProfileEditorPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.suggestionDetailSegment,
+            builder: (context, state) {
+              final suggestionId = state.pathParameters['suggestionId']!;
+              return SuggestionDetailPage(suggestionId: suggestionId);
+            },
+          ),
+        ],
       ),
     ],
   );

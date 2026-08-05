@@ -11,11 +11,17 @@ class PrimePageScaffold extends StatelessWidget {
     required this.title,
     this.body,
     this.floatingActionButton,
+    this.actions,
   });
 
   final String title;
   final Widget? body;
   final Widget? floatingActionButton;
+
+  /// Optional trailing widgets shown alongside the title — e.g. a Phase 16
+  /// "browse suggestions" entry point on the Quests tab. `null` (the
+  /// default) reproduces the exact pre-Phase-16 layout.
+  final List<Widget>? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,17 @@ class PrimePageScaffold extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.headlineMedium),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                  ),
+                  if (actions != null) ...actions!,
+                ],
+              ),
               const SizedBox(height: AppSpacing.lg),
               if (body != null) Expanded(child: body!),
             ],

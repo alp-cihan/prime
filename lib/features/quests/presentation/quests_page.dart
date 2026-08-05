@@ -18,6 +18,13 @@ class QuestsPage extends ConsumerWidget {
 
     return PrimePageScaffold(
       title: 'Quests',
+      actions: [
+        IconButton(
+          onPressed: () => context.push(AppRoutes.suggestions),
+          icon: const Icon(Icons.auto_awesome_outlined),
+          tooltip: 'Suggestions',
+        ),
+      ],
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go(AppRoutes.questNew),
         tooltip: 'Create Quest',
@@ -89,6 +96,12 @@ class _EmptyQuests extends StatelessWidget {
               onPressed: () => context.go(AppRoutes.questNew),
               icon: const Icon(Icons.add),
               label: const Text('Create Quest'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              onPressed: () => context.push(AppRoutes.suggestions),
+              icon: const Icon(Icons.auto_awesome_outlined),
+              label: const Text('Browse Suggestions'),
             ),
           ],
         ),

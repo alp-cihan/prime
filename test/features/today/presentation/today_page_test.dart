@@ -65,6 +65,11 @@ Widget _harness(List<Override> overrides) {
           ),
         ),
       ),
+      GoRoute(
+        path: '/suggestions',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('suggestions-page'))),
+      ),
     ],
   );
 
@@ -115,6 +120,12 @@ void main() {
       today: _today,
     );
 
+    // The Phase 16 "Browse Suggestions" button on the empty featured-quest
+    // card adds enough height to push "No XP earned today" (Growth Today,
+    // near the bottom) outside the default 800x600 surface, where
+    // `ListView`'s sliver virtualization never builds it — same fix as the
+    // other tests below that already call `_growViewport`.
+    _growViewport(tester);
     await tester.pumpWidget(_harness(overrides));
     await tester.pumpAndSettle();
 
@@ -130,6 +141,28 @@ void main() {
     expect(find.text('No XP earned today'), findsOneWidget); // Growth today
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    "the empty state's Browse Suggestions button reaches /suggestions",
+    (tester) async {
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository(),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, 'Browse Suggestions'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('suggestions-page'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'renders player level, featured quest, daily momentum, and quest list',

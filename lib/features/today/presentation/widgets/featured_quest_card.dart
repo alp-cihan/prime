@@ -241,11 +241,22 @@ class _NoFeaturedQuest extends StatelessWidget {
         color: AppColors.darkSurface,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        'No quests yet. Quests you create will show up here.',
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(color: AppColors.darkTextSecondary),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No quests yet. Quests you create will show up here.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.darkTextSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            onPressed: () => context.push(AppRoutes.suggestions),
+            icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+            label: const Text('Browse Suggestions'),
+          ),
+        ],
       ),
     );
   }

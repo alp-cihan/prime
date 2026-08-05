@@ -69,6 +69,18 @@ class _RestartSentinelState extends State<_RestartSentinel> {
   }
 }
 
+/// Settings gained a second tile (Phase 16's "Suggestion Preferences") below
+/// "Restart Onboarding" — enough extra height that "Clear all local data"
+/// falls outside the default 800x600 test surface and `ListView`'s sliver
+/// virtualization never builds it. Same fix as `today_page_test.dart`'s
+/// identically-named helper.
+void _growViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1200);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 Widget _harness(
   List<Override> overrides, {
   bool wrapInRestartScope = false,
@@ -103,6 +115,7 @@ void main() {
   testWidgets('renders every expected section and the current app version', (
     tester,
   ) async {
+    _growViewport(tester);
     await tester.pumpWidget(_harness([]));
     await tester.pumpAndSettle();
 
@@ -132,6 +145,7 @@ void main() {
     (tester) async {
       final controller = _FakeClearDataController();
 
+      _growViewport(tester);
       await tester.pumpWidget(
         _harness([clearDataControllerProvider.overrideWith(() => controller)]),
       );
@@ -158,6 +172,7 @@ void main() {
       final controller = _FakeClearDataController();
       final sentinelIds = <int>[];
 
+      _growViewport(tester);
       await tester.pumpWidget(
         _harness(
           [clearDataControllerProvider.overrideWith(() => controller)],
@@ -183,6 +198,7 @@ void main() {
     (tester) async {
       final controller = _FakeClearDataController()..shouldFail = true;
 
+      _growViewport(tester);
       await tester.pumpWidget(
         _harness([clearDataControllerProvider.overrideWith(() => controller)]),
       );

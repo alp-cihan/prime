@@ -6,6 +6,10 @@ abstract final class HiveBoxNames {
   static const String achievementUnlocks = 'achievement_unlocks';
   static const String chainProgress = 'chain_progress';
 
+  /// Phase 16 — single-record box holding the local recommendation
+  /// profile (life stage/goals/time/intensity) plus accepted suggestion ids.
+  static const String recommendationProfile = 'recommendation_profile';
+
   /// Untyped `Box<bool>` holding small app-level flags (currently just
   /// onboarding completion) — no `@HiveType` model needed for a single
   /// boolean, so this deliberately doesn't get a `HiveTypeIds` entry.
@@ -20,6 +24,7 @@ abstract final class HiveBoxNames {
     xpTransactions,
     achievementUnlocks,
     chainProgress,
+    recommendationProfile,
     appPreferences,
   ];
 }

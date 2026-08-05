@@ -45,6 +45,13 @@ class SettingsPage extends ConsumerWidget {
             subtitle: 'See the intro and starter quests again',
             onTap: () => context.push(AppRoutes.onboarding),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          _SettingsTile(
+            icon: Icons.auto_awesome_outlined,
+            title: 'Suggestion Preferences',
+            subtitle: 'Life stage, goals, time, and pace for Suggestions',
+            onTap: () => context.push(AppRoutes.suggestionsPreferences),
+          ),
           const SizedBox(height: AppSpacing.lg),
           _SectionHeader('About'),
           const _SettingsInfoTile(

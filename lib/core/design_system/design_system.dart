@@ -1,6 +1,7 @@
 export 'attribute_visuals.dart';
 export 'domain_display_names.dart';
 export 'format_number.dart';
+export 'suggestion_display_names.dart';
 export 'tokens/app_colors.dart';
 export 'tokens/app_gradients.dart';
 export 'tokens/app_spacing.dart';

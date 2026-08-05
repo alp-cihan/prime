@@ -60,6 +60,11 @@ Widget _harness(List<Override> overrides) {
           ),
         ],
       ),
+      GoRoute(
+        path: '/suggestions',
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('suggestions-page'))),
+      ),
     ],
   );
 
@@ -189,5 +194,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('create-form'), findsOneWidget);
+  });
+
+  testWidgets('the Suggestions entry point is visible and reachable from the '
+      'empty state', (tester) async {
+    final overrides = fakeProviderOverrides(
+      questRepository: FakeQuestRepository(),
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(_harness(overrides));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.widgetWithText(OutlinedButton, 'Browse Suggestions'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Browse Suggestions'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('suggestions-page'), findsOneWidget);
+  });
+
+  testWidgets('the Suggestions entry point is always visible, even with '
+      'quests present', (tester) async {
+    final questRepository = FakeQuestRepository()..quests['q1'] = _buildQuest();
+    final overrides = fakeProviderOverrides(
+      questRepository: questRepository,
+      questProgressRepository: FakeQuestProgressRepository(),
+      xpLedgerRepository: FakeXpLedgerRepository(),
+      today: DateTime.utc(2026, 1, 10),
+    );
+
+    await tester.pumpWidget(_harness(overrides));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Suggestions'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('suggestions-page'), findsOneWidget);
   });
 }

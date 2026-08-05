@@ -7,6 +7,7 @@ import 'package:prime/features/achievements/data/models/achievement_unlock_hive_
 import 'package:prime/features/chains/data/models/chain_progress_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_progress_hive_model.dart';
+import 'package:prime/features/suggestions/data/models/recommendation_profile_hive_model.dart';
 import 'package:prime/features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 
 /// Builds a [ProviderContainer] wired to real, freshly-opened temporary Hive
@@ -29,6 +30,10 @@ Future<ProviderContainer> buildTestContainer({
   final chainProgressBox = await Hive.openBox<ChainProgressHiveModel>(
     HiveBoxNames.chainProgress,
   );
+  final recommendationProfileBox =
+      await Hive.openBox<RecommendationProfileHiveModel>(
+        HiveBoxNames.recommendationProfile,
+      );
   final appPreferencesBox = await Hive.openBox<bool>(
     HiveBoxNames.appPreferences,
   );
@@ -40,6 +45,9 @@ Future<ProviderContainer> buildTestContainer({
       xpTransactionHiveBoxProvider.overrideWithValue(ledgerBox),
       achievementUnlockHiveBoxProvider.overrideWithValue(achievementUnlockBox),
       chainProgressHiveBoxProvider.overrideWithValue(chainProgressBox),
+      recommendationProfileHiveBoxProvider.overrideWithValue(
+        recommendationProfileBox,
+      ),
       appPreferencesHiveBoxProvider.overrideWithValue(appPreferencesBox),
       ...extraOverrides,
     ],

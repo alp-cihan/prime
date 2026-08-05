@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tee \"C:/Users/alpci/AppData/Local/Temp/claude/c--Projelerim-prime/961b73d0-8369-41f8-a9a8-ccd5eb089170/scratchpad/test_output2.log\")",
+      "Bash(python -c \"import playwright; print\\('py playwright available'\\)\")",
+      "Bash(echo \"started with pid $!\")",
+      "Bash(timeout 180 bash -c 'until curl -sf http://localhost:8765 >/dev/null 2>&1; do sleep 3; done; echo READY')",
+      "Bash(node -e \"const {chromium} = require\\('playwright'\\); \\(async\\(\\)=>{try{const b = await chromium.launch\\(\\); console.log\\('chromium OK'\\); await b.close\\(\\);}catch\\(e\\){console.log\\('ERR: '+e.message\\);}}\\)\\(\\)\")",
+      "Bash(npx playwright *)"
+    ]
+  }
+}

@@ -274,6 +274,14 @@ class _StarterTemplatesStep extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
           ],
+          const SizedBox(height: AppSpacing.sm),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => context.push(AppRoutes.suggestions),
+              icon: const Icon(Icons.auto_awesome_outlined, size: 18),
+              label: const Text('Browse more suggestions'),
+            ),
+          ),
         ],
       ),
     );

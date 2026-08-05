@@ -2,6 +2,7 @@ import 'package:prime/features/achievements/presentation/providers/achievement_r
 import 'package:prime/features/chains/presentation/providers/chain_repository_providers.dart';
 import 'package:prime/features/onboarding/presentation/providers/onboarding_providers.dart';
 import 'package:prime/features/quests/presentation/providers/quest_repository_providers.dart';
+import 'package:prime/features/suggestions/presentation/providers/suggestions_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 import 'package:prime/features/xp_ledger/presentation/providers/xp_ledger_providers.dart';
 
@@ -29,6 +30,7 @@ List<Override> fakeProviderOverrides({
   required DateTime today,
   FakeAchievementUnlockRepository? achievementUnlockRepository,
   FakeChainProgressRepository? chainProgressRepository,
+  FakeRecommendationProfileRepository? recommendationProfileRepository,
   bool onboardingCompleted = true,
 }) {
   return [
@@ -40,6 +42,9 @@ List<Override> fakeProviderOverrides({
     ),
     chainProgressRepositoryProvider.overrideWithValue(
       chainProgressRepository ?? FakeChainProgressRepository(),
+    ),
+    recommendationProfileRepositoryProvider.overrideWithValue(
+      recommendationProfileRepository ?? FakeRecommendationProfileRepository(),
     ),
     onboardingRepositoryProvider.overrideWithValue(
       FakeOnboardingRepository(completed: onboardingCompleted),

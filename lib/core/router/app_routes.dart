@@ -12,6 +12,31 @@ abstract final class AppRoutes {
   /// (Settings' "Restart Onboarding").
   static const String onboarding = '/onboarding';
 
+  /// Phase 16 — Quest Suggestions. Outside the 5-tab shell, same reasoning
+  /// as [focus]/[onboarding]: it has entry points from several different
+  /// tabs (Quests empty state, the quests list, onboarding, Today's empty
+  /// state, Settings), so it is not naturally "owned" by any one shell
+  /// branch — every entry point `context.push`es here and pops back to
+  /// whichever tab it came from.
+  static const String suggestions = '/suggestions';
+
+  /// Path segment for the preferences editor, nested under [suggestions].
+  /// Declared before [suggestionDetailSegment] for the same sibling-route
+  /// ordering reason as [questNewSegment] vs. [questDetailSegment].
+  static const String suggestionsPreferencesSegment = 'preferences';
+
+  /// Builds the concrete path to the preferences editor.
+  static String suggestionsPreferences =
+      '$suggestions/$suggestionsPreferencesSegment';
+
+  /// Path segment for a single suggestion's detail/preview, nested under
+  /// [suggestions].
+  static const String suggestionDetailSegment = ':suggestionId';
+
+  /// Builds the concrete path to a suggestion's detail/preview screen.
+  static String suggestionDetail(String suggestionId) =>
+      '$suggestions/$suggestionId';
+
   /// Path segment for Settings, nested under [you] — same placement
   /// rationale as [achievementsSegment].
   static const String settingsSegment = 'settings';

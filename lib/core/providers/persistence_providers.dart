@@ -6,6 +6,7 @@ import '../../features/achievements/data/models/achievement_unlock_hive_model.da
 import '../../features/chains/data/models/chain_progress_hive_model.dart';
 import '../../features/quests/data/models/quest_hive_model.dart';
 import '../../features/quests/data/models/quest_progress_hive_model.dart';
+import '../../features/suggestions/data/models/recommendation_profile_hive_model.dart';
 import '../../features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 
 part 'persistence_providers.g.dart';
@@ -38,6 +39,10 @@ Box<AchievementUnlockHiveModel> achievementUnlockHiveBox(Ref ref) =>
 @Riverpod(keepAlive: true)
 Box<ChainProgressHiveModel> chainProgressHiveBox(Ref ref) =>
     bootstrap.chainProgressBox();
+
+@Riverpod(keepAlive: true)
+Box<RecommendationProfileHiveModel> recommendationProfileHiveBox(Ref ref) =>
+    bootstrap.recommendationProfileBox();
 
 @Riverpod(keepAlive: true)
 Box<bool> appPreferencesHiveBox(Ref ref) => bootstrap.appPreferencesBox();

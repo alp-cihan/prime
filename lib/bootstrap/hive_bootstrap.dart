@@ -6,6 +6,7 @@ import '../features/achievements/data/models/achievement_unlock_hive_model.dart'
 import '../features/chains/data/models/chain_progress_hive_model.dart';
 import '../features/quests/data/models/quest_hive_model.dart';
 import '../features/quests/data/models/quest_progress_hive_model.dart';
+import '../features/suggestions/data/models/recommendation_profile_hive_model.dart';
 import '../features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 import '../hive_registrar.g.dart';
 
@@ -52,6 +53,11 @@ Future<void> reopenAllBoxes() async {
   if (!Hive.isBoxOpen(HiveBoxNames.chainProgress)) {
     await Hive.openBox<ChainProgressHiveModel>(HiveBoxNames.chainProgress);
   }
+  if (!Hive.isBoxOpen(HiveBoxNames.recommendationProfile)) {
+    await Hive.openBox<RecommendationProfileHiveModel>(
+      HiveBoxNames.recommendationProfile,
+    );
+  }
   if (!Hive.isBoxOpen(HiveBoxNames.appPreferences)) {
     await Hive.openBox<bool>(HiveBoxNames.appPreferences);
   }
@@ -71,5 +77,10 @@ Box<AchievementUnlockHiveModel> achievementUnlockBox() =>
 
 Box<ChainProgressHiveModel> chainProgressBox() =>
     Hive.box<ChainProgressHiveModel>(HiveBoxNames.chainProgress);
+
+Box<RecommendationProfileHiveModel> recommendationProfileBox() =>
+    Hive.box<RecommendationProfileHiveModel>(
+      HiveBoxNames.recommendationProfile,
+    );
 
 Box<bool> appPreferencesBox() => Hive.box<bool>(HiveBoxNames.appPreferences);

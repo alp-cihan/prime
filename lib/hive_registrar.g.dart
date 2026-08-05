@@ -7,6 +7,7 @@ import 'package:prime/features/achievements/data/models/achievement_unlock_hive_
 import 'package:prime/features/chains/data/models/chain_progress_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_hive_model.dart';
 import 'package:prime/features/quests/data/models/quest_progress_hive_model.dart';
+import 'package:prime/features/suggestions/data/models/recommendation_profile_hive_model.dart';
 import 'package:prime/features/xp_ledger/data/models/xp_transaction_hive_model.dart';
 
 extension HiveRegistrar on HiveInterface {
@@ -15,6 +16,7 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(ChainProgressHiveModelAdapter());
     registerAdapter(QuestHiveModelAdapter());
     registerAdapter(QuestProgressHiveModelAdapter());
+    registerAdapter(RecommendationProfileHiveModelAdapter());
     registerAdapter(XpTransactionHiveModelAdapter());
   }
 }
@@ -25,6 +27,7 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(ChainProgressHiveModelAdapter());
     registerAdapter(QuestHiveModelAdapter());
     registerAdapter(QuestProgressHiveModelAdapter());
+    registerAdapter(RecommendationProfileHiveModelAdapter());
     registerAdapter(XpTransactionHiveModelAdapter());
   }
 }

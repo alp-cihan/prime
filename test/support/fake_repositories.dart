@@ -12,6 +12,8 @@ import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
 import 'package:prime/features/quests/domain/repositories/quest_progress_repository.dart';
 import 'package:prime/features/quests/domain/repositories/quest_repository.dart';
+import 'package:prime/features/suggestions/domain/entities/recommendation_profile.dart';
+import 'package:prime/features/suggestions/domain/repositories/recommendation_profile_repository.dart';
 import 'package:prime/features/xp_ledger/domain/entities/xp_transaction.dart';
 import 'package:prime/features/xp_ledger/domain/repositories/xp_ledger_repository.dart';
 
@@ -263,6 +265,28 @@ class FakeOnboardingRepository implements OnboardingRepository {
 
   @override
   void reset() => _completed = false;
+}
+
+class FakeRecommendationProfileRepository
+    implements RecommendationProfileRepository {
+  FakeRecommendationProfileRepository({RecommendationProfile? initial})
+    : _profile = initial ?? RecommendationProfile.defaultProfile;
+
+  RecommendationProfile _profile;
+
+  @override
+  Future<RecommendationProfile> get() async => _profile;
+
+  @override
+  Future<void> save(RecommendationProfile profile) async => _profile = profile;
+
+  @override
+  Future<void> markSuggestionAccepted(String suggestionId) async {
+    if (_profile.acceptedSuggestionIds.contains(suggestionId)) return;
+    _profile = _profile.copyWith(
+      acceptedSuggestionIds: {..._profile.acceptedSuggestionIds, suggestionId},
+    );
+  }
 }
 
 class FakeClock implements Clock {

@@ -281,6 +281,57 @@ final class ChainProgressHiveBoxProvider
 String _$chainProgressHiveBoxHash() =>
     r'5c3a7355c6441170342f5823e4201eaf3b3b91d8';
 
+@ProviderFor(recommendationProfileHiveBox)
+final recommendationProfileHiveBoxProvider =
+    RecommendationProfileHiveBoxProvider._();
+
+final class RecommendationProfileHiveBoxProvider
+    extends
+        $FunctionalProvider<
+          Box<RecommendationProfileHiveModel>,
+          Box<RecommendationProfileHiveModel>,
+          Box<RecommendationProfileHiveModel>
+        >
+    with $Provider<Box<RecommendationProfileHiveModel>> {
+  RecommendationProfileHiveBoxProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'recommendationProfileHiveBoxProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$recommendationProfileHiveBoxHash();
+
+  @$internal
+  @override
+  $ProviderElement<Box<RecommendationProfileHiveModel>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Box<RecommendationProfileHiveModel> create(Ref ref) {
+    return recommendationProfileHiveBox(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Box<RecommendationProfileHiveModel> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Box<RecommendationProfileHiveModel>>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$recommendationProfileHiveBoxHash() =>
+    r'93d1e3a1eb1adcdfebbed1fd13d05cdd273aec84';
+
 @ProviderFor(appPreferencesHiveBox)
 final appPreferencesHiveBoxProvider = AppPreferencesHiveBoxProvider._();
 
