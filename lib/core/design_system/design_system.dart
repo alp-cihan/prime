@@ -1,3 +1,4 @@
+export 'asset_visual_resolver.dart';
 export 'attribute_visuals.dart';
 export 'domain_display_names.dart';
 export 'format_number.dart';
