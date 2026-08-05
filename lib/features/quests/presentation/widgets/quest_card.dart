@@ -39,7 +39,12 @@ class QuestCard extends StatelessWidget {
             width: 48,
             height: 48,
             child: QuestVisual(
-              seed: quest.id,
+              // Phase 17.2 — prefer the quest's own visual identity
+              // (carried over from the suggestion it was created from, if
+              // any); a hand-typed quest has none, so this falls back to
+              // its id exactly as before, resolving to the gradient
+              // placeholder.
+              seed: quest.visualKey ?? quest.id,
               icon: primaryAttribute == null
                   ? null
                   : attributeIcon(primaryAttribute),

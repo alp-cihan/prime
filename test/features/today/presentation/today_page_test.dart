@@ -19,6 +19,7 @@ Quest _buildQuest({
   required String id,
   required String title,
   QuestCompletionState state = QuestCompletionState.notStarted,
+  String? visualKey,
 }) {
   return Quest(
     id: id,
@@ -34,6 +35,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
+    visualKey: visualKey,
   );
 }
 
@@ -224,6 +226,34 @@ void main() {
       expect(find.text('Health'), findsWidgets); // quest chips + attribute tile
 
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Phase 17.2: the Featured Quest card renders the quest visualKey\'s '
+    'bundled asset, not the gradient placeholder',
+    (tester) async {
+      final questRepository = FakeQuestRepository()
+        ..quests['q1'] = _buildQuest(
+          id: 'q1',
+          title: 'Walk',
+          visualKey: 'fitness/walk_20',
+        );
+      final overrides = fakeProviderOverrides(
+        questRepository: questRepository,
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness(overrides));
+      await tester.pumpAndSettle();
+
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(
+        (image.image as AssetImage).assetName,
+        'assets/visuals/walking.png',
+      );
     },
   );
 

@@ -60,6 +60,7 @@ Quest _buildQuest({
     failureBehavior: FailureBehavior.carryOver,
     optionalReward: const Reward(xp: 50),
     repeatability: Repeatability.daily,
+    visualKey: 'fitness/walk_20',
   );
 }
 
@@ -133,6 +134,34 @@ void main() {
     expect(updated.prerequisiteQuestIds, ['q0']);
     expect(updated.failureBehavior, FailureBehavior.carryOver);
     expect(updated.optionalReward, const Reward(xp: 50));
+    // Phase 17.2: the edit form has no visual picker, so an edit must never
+    // silently strip a quest's existing visual identity.
+    expect(updated.visualKey, 'fitness/walk_20');
+  });
+
+  test('Phase 17.2: editing a hand-typed quest (no visualKey) keeps it null — '
+      'an edit never invents one', () async {
+    // Built directly (not via `_buildQuest()`, which sets a visualKey) —
+    // this is what a quest with no visual identity actually looks like.
+    repository.quests['q1'] = Quest(
+      id: 'q1',
+      title: 'Workout',
+      description: 'desc',
+      type: QuestType.daily,
+      difficulty: QuestDifficulty.normal,
+      attributeXpWeights: const {AttributeType.health: 60},
+      linkedIdentityStatementIds: const [],
+      progressType: ProgressType.binary,
+      currentProgress: 0,
+      targetProgress: 1,
+      prerequisiteQuestIds: const [],
+      state: QuestCompletionState.notStarted,
+      failureBehavior: FailureBehavior.expire,
+    );
+
+    final result = await useCase.execute(_validCommand());
+
+    expect((result as Ok<Quest>).value.visualKey, isNull);
   });
 
   test('clearing the repeatability to "none" actually clears it', () async {

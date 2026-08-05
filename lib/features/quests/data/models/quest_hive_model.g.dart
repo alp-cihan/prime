@@ -37,13 +37,14 @@ class QuestHiveModelAdapter extends TypeAdapter<QuestHiveModel> {
       rewardTitleId: fields[17] as String?,
       rewardAchievementId: fields[18] as String?,
       hasReward: fields[19] == null ? false : fields[19] as bool,
+      visualKey: fields[20] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, QuestHiveModel obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -83,7 +84,9 @@ class QuestHiveModelAdapter extends TypeAdapter<QuestHiveModel> {
       ..writeByte(18)
       ..write(obj.rewardAchievementId)
       ..writeByte(19)
-      ..write(obj.hasReward);
+      ..write(obj.hasReward)
+      ..writeByte(20)
+      ..write(obj.visualKey);
   }
 
   @override

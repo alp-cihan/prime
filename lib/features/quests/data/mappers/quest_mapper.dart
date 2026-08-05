@@ -43,6 +43,7 @@ class QuestMapper {
       rewardTitleId: reward?.titleId,
       rewardAchievementId: reward?.achievementId,
       hasReward: reward != null,
+      visualKey: quest.visualKey,
     );
   }
 
@@ -81,6 +82,7 @@ class QuestMapper {
             )
           : null,
       repeatability: _repeatabilityFromRule(model.repeatabilityRule),
+      visualKey: model.visualKey,
     );
   }
 

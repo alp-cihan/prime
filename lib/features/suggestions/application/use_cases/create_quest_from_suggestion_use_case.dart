@@ -11,7 +11,9 @@ import '../models/create_quest_from_suggestion_outcome.dart';
 /// Turns one [QuestSuggestion] into a real, user-owned [Quest] — through the
 /// exact same [CreateQuestUseCase] the create-quest form and onboarding's
 /// starter templates use, so an accepted suggestion is indistinguishable
-/// from a hand-typed quest.
+/// from a hand-typed quest, except that it carries the suggestion's
+/// [QuestSuggestion.visualKey] forward (Phase 17.2 visual continuity) — the
+/// one field a hand-typed quest never has.
 ///
 /// Idempotent by (normalized) title, same strategy as
 /// `CreateStarterQuestsUseCase`: a suggestion whose title already matches an
@@ -63,6 +65,7 @@ class CreateQuestFromSuggestionUseCase {
         progressType: suggestion.progressType,
         targetProgress: suggestion.targetProgress,
         repeatability: suggestion.repeatability,
+        visualKey: suggestion.visualKey,
       ),
     );
 

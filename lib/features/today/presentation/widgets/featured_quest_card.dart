@@ -68,7 +68,11 @@ class _FeaturedQuestContent extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           QuestVisual(
-            seed: quest.id,
+            // Phase 17.2 — see QuestCard's identical comment: prefer the
+            // quest's own visual identity, falling back to its id (and
+            // therefore the gradient placeholder) exactly as before when
+            // it has none.
+            seed: quest.visualKey ?? quest.id,
             icon: primaryAttribute == null
                 ? null
                 : attributeIcon(primaryAttribute),

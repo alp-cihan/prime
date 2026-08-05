@@ -47,6 +47,7 @@ CreateQuestCommand _validCommand({
   ProgressType progressType = ProgressType.binary,
   double targetProgress = 1,
   Repeatability repeatability = Repeatability.none,
+  String? visualKey,
 }) {
   return CreateQuestCommand(
     title: title,
@@ -57,6 +58,7 @@ CreateQuestCommand _validCommand({
     progressType: progressType,
     targetProgress: targetProgress,
     repeatability: repeatability,
+    visualKey: visualKey,
   );
 }
 
@@ -86,7 +88,20 @@ void main() {
     expect(quest.prerequisiteQuestIds, isEmpty);
     expect(quest.optionalReward, isNull);
     expect(quest.questChainId, isNull);
+    expect(quest.visualKey, isNull); // a hand-typed quest has no visualKey
   });
+
+  test(
+    'Phase 17.2: carries a visualKey through when the command has one',
+    () async {
+      final result = await useCase.execute(
+        _validCommand(visualKey: 'fitness/walk_20'),
+      );
+
+      final quest = (result as Ok<Quest>).value;
+      expect(quest.visualKey, 'fitness/walk_20');
+    },
+  );
 
   test('trims title and description', () async {
     final result = await useCase.execute(

@@ -10,8 +10,10 @@ import '../models/update_quest_command.dart';
 /// values, and persists a new [Quest] that preserves every field the form
 /// doesn't expose (`id`, `state`, `currentProgress`,
 /// `linkedIdentityStatementIds`, `deadline`, `questChainId`,
-/// `prerequisiteQuestIds`, `optionalReward`) unchanged from the existing
-/// record.
+/// `prerequisiteQuestIds`, `optionalReward`, `visualKey`) unchanged from the
+/// existing record — Phase 17.2: editing a quest's title/difficulty/etc.
+/// must never silently strip its visual identity, since the edit form has
+/// no visual picker of its own to resubmit one.
 ///
 /// Deliberately constructs a new [Quest] directly rather than
 /// `existing.copyWith(...)`: [Quest.copyWith] falls back to the existing
@@ -77,6 +79,7 @@ class UpdateQuestUseCase {
       failureBehavior: existing.failureBehavior,
       optionalReward: existing.optionalReward,
       repeatability: command.repeatability,
+      visualKey: existing.visualKey,
     );
 
     try {

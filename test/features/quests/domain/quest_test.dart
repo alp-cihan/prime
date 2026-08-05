@@ -35,6 +35,22 @@ void main() {
       expect(updated.state, QuestCompletionState.complete);
       expect(updated.title, 'Workout');
     });
+
+    test('visualKey defaults to null (a hand-typed quest has none)', () {
+      expect(_buildQuest().visualKey, isNull);
+    });
+
+    test('copyWith sets visualKey', () {
+      final updated = _buildQuest().copyWith(visualKey: 'fitness/walk_20');
+      expect(updated.visualKey, 'fitness/walk_20');
+      // Every other field is untouched.
+      expect(updated.title, 'Workout');
+    });
+
+    test('two quests differing only by visualKey are not equal', () {
+      final withVisual = _buildQuest().copyWith(visualKey: 'fitness/walk_20');
+      expect(withVisual, isNot(_buildQuest()));
+    });
   });
 
   group('QuestProgress', () {

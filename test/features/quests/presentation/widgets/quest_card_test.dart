@@ -10,6 +10,7 @@ final _today = DateTime.utc(2026, 1, 10);
 Quest _buildQuest({
   ProgressType progressType = ProgressType.binary,
   double targetProgress = 1,
+  String? visualKey,
 }) {
   return Quest(
     id: 'q1',
@@ -25,6 +26,7 @@ Quest _buildQuest({
     prerequisiteQuestIds: const [],
     state: QuestCompletionState.notStarted,
     failureBehavior: FailureBehavior.expire,
+    visualKey: visualKey,
   );
 }
 
@@ -140,5 +142,41 @@ void main() {
     await tester.pumpWidget(_harness(quest, null));
 
     expect(tester.takeException(), isNull);
+  });
+
+  group('Phase 17.2 visual continuity', () {
+    testWidgets(
+      'a quest created from a suggestion renders the matching bundled '
+      'asset instead of the gradient placeholder',
+      (tester) async {
+        final quest = _buildQuest(visualKey: 'fitness/walk_20');
+
+        await tester.pumpWidget(_harness(quest, null));
+        await tester.pumpAndSettle();
+
+        // find.byType(DecoratedBox) isn't a useful signal here — the
+        // card's difficulty/XP chips are also Containers with a
+        // BoxDecoration, which compile to DecoratedBox too; Image
+        // presence/asset name is the actual distinguishing check.
+        final image = tester.widget<Image>(find.byType(Image));
+        expect(
+          (image.image as AssetImage).assetName,
+          'assets/visuals/walking.png',
+        );
+      },
+    );
+
+    testWidgets(
+      'a hand-typed quest (no visualKey) still falls back to the gradient '
+      'placeholder, exactly as before Phase 17.2',
+      (tester) async {
+        final quest = _buildQuest(); // visualKey: null
+
+        await tester.pumpWidget(_harness(quest, null));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Image), findsNothing);
+      },
+    );
   });
 }

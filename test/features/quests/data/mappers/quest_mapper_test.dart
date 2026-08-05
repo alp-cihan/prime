@@ -36,6 +36,7 @@ void main() {
         achievementId: 'ach-1',
       ),
       repeatability: Repeatability.daily,
+      visualKey: 'fitness/walk_20',
     );
   }
 
@@ -68,6 +69,7 @@ void main() {
     expect(roundTripped.questChainId, isNull);
     expect(roundTripped.optionalReward, isNull);
     expect(roundTripped.repeatability, Repeatability.none);
+    expect(roundTripped.visualKey, isNull);
   });
 
   test('weekly repeatability round-trips through the string field', () {
@@ -120,5 +122,61 @@ void main() {
     final quest = fullQuest();
     final roundTripped = mapper.toDomain(mapper.toModel(quest));
     expect(roundTripped.attributeXpWeights, quest.attributeXpWeights);
+  });
+
+  group('Phase 17.2 visualKey', () {
+    test('round-trips a suggestion-derived visualKey', () {
+      final quest = fullQuest().copyWith(visualKey: 'nutrition/water');
+      final roundTripped = mapper.toDomain(mapper.toModel(quest));
+      expect(roundTripped.visualKey, 'nutrition/water');
+    });
+
+    test('a hand-typed quest (no visualKey) round-trips to null', () {
+      // `Quest.copyWith`'s `??` semantics can't clear an already-set field,
+      // so this constructs directly — mirroring the top-level "round-trips
+      // when every nullable field is null" fixture, just scoped to this
+      // one field.
+      final quest = Quest(
+        id: 'q3',
+        title: 'Hand-typed quest',
+        description: '',
+        type: QuestType.daily,
+        difficulty: QuestDifficulty.normal,
+        attributeXpWeights: const {AttributeType.discipline: 20},
+        linkedIdentityStatementIds: const [],
+        progressType: ProgressType.binary,
+        currentProgress: 0,
+        targetProgress: 1,
+        prerequisiteQuestIds: const [],
+        state: QuestCompletionState.notStarted,
+        failureBehavior: FailureBehavior.expire,
+      );
+
+      final roundTripped = mapper.toDomain(mapper.toModel(quest));
+      expect(roundTripped.visualKey, isNull);
+    });
+
+    test('a persisted model with no visualKey field at all (pre-Phase-17.2 '
+        'shape) maps to a null visualKey rather than throwing', () {
+      final legacyModel = QuestHiveModel(
+        id: 'legacy',
+        title: 'Legacy quest',
+        description: '',
+        type: QuestType.daily.name,
+        difficulty: QuestDifficulty.normal.name,
+        attributeXpWeights: const {'health': 20},
+        linkedIdentityStatementIds: const [],
+        progressType: ProgressType.binary.name,
+        currentProgress: 0,
+        targetProgress: 1,
+        prerequisiteQuestIds: const [],
+        state: QuestCompletionState.notStarted.name,
+        failureBehavior: FailureBehavior.expire.name,
+        // visualKey omitted — relies on the constructor default (null),
+        // simulating a record written before the field existed.
+      );
+
+      expect(mapper.toDomain(legacyModel).visualKey, isNull);
+    });
   });
 }

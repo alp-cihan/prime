@@ -55,6 +55,7 @@ class CreateQuestUseCase {
       state: QuestCompletionState.notStarted,
       failureBehavior: FailureBehavior.expire,
       repeatability: command.repeatability,
+      visualKey: command.visualKey,
     );
 
     try {

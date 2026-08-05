@@ -71,6 +71,32 @@ void main() {
     },
   );
 
+  test(
+    'Phase 17.2: copies the suggestion visualKey onto the created quest',
+    () async {
+      final result = await useCase.execute(_suggestion);
+
+      final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
+      expect(outcome.quest.visualKey, _suggestion.visualKey);
+      expect(outcome.quest.visualKey, 'fitness/test');
+    },
+  );
+
+  test(
+    'every catalog entry carries its own visualKey onto the created quest',
+    () async {
+      for (final suggestion in questSuggestionCatalog.take(10)) {
+        final result = await useCase.execute(suggestion);
+        final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
+        expect(
+          outcome.quest.visualKey,
+          suggestion.visualKey,
+          reason: suggestion.id,
+        );
+      }
+    },
+  );
+
   test('marks the suggestion accepted on the recommendation profile', () async {
     await useCase.execute(_suggestion);
 

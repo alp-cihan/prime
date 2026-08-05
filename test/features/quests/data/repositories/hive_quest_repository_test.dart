@@ -169,4 +169,86 @@ void main() {
     expect(fetched, isNotNull);
     expect(fetched!.state, QuestCompletionState.inProgress);
   });
+
+  group('Phase 17.2 visualKey migration', () {
+    test('a record written before visualKey existed (field 20 never set) '
+        'reads back with visualKey null instead of failing to load', () async {
+      final box = await openBox();
+      // Deliberately bypasses QuestMapper/HiveQuestRepository.upsert (both
+      // now always pass visualKey) and constructs the pre-Phase-17.2
+      // model shape directly — the same simulate-a-legacy-record strategy
+      // quest_mapper_test.dart already uses for repeatabilityRule.
+      final legacyModel = QuestHiveModel(
+        id: 'legacy-quest',
+        title: 'Old quest',
+        description: 'Created before Phase 17.2',
+        type: QuestType.daily.name,
+        difficulty: QuestDifficulty.normal.name,
+        attributeXpWeights: const {'health': 20},
+        linkedIdentityStatementIds: const [],
+        progressType: ProgressType.binary.name,
+        currentProgress: 0,
+        targetProgress: 1,
+        prerequisiteQuestIds: const [],
+        state: QuestCompletionState.notStarted.name,
+        failureBehavior: FailureBehavior.expire.name,
+        // visualKey omitted entirely — relies on the constructor default.
+      );
+      await box.put('legacy-quest', legacyModel);
+
+      final repo = HiveQuestRepository(box);
+      final fetched = await repo.getById('legacy-quest');
+
+      expect(fetched, isNotNull);
+      expect(fetched!.visualKey, isNull);
+      expect(fetched.title, 'Old quest');
+    });
+
+    test(
+      'the same legacy record still reads back cleanly after a restart',
+      () async {
+        final box = await openBox();
+        final legacyModel = QuestHiveModel(
+          id: 'legacy-quest',
+          title: 'Old quest',
+          description: '',
+          type: QuestType.daily.name,
+          difficulty: QuestDifficulty.normal.name,
+          attributeXpWeights: const {'health': 20},
+          linkedIdentityStatementIds: const [],
+          progressType: ProgressType.binary.name,
+          currentProgress: 0,
+          targetProgress: 1,
+          prerequisiteQuestIds: const [],
+          state: QuestCompletionState.notStarted.name,
+          failureBehavior: FailureBehavior.expire.name,
+        );
+        await box.put('legacy-quest', legacyModel);
+
+        await support.reopen();
+        final reopenedBox = await openBox();
+        final reopenedRepo = HiveQuestRepository(reopenedBox);
+
+        final fetched = await reopenedRepo.getById('legacy-quest');
+        expect(fetched, isNotNull);
+        expect(fetched!.visualKey, isNull);
+      },
+    );
+
+    test(
+      'a quest created with a visualKey keeps it across a restart',
+      () async {
+        final box = await openBox();
+        final repo = HiveQuestRepository(box);
+        await repo.upsert(_buildQuest().copyWith(visualKey: 'fitness/walk_20'));
+
+        await support.reopen();
+        final reopenedBox = await openBox();
+        final reopenedRepo = HiveQuestRepository(reopenedBox);
+
+        final fetched = await reopenedRepo.getById('q1');
+        expect(fetched?.visualKey, 'fitness/walk_20');
+      },
+    );
+  });
 }

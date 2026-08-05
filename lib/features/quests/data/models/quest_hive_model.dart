@@ -27,11 +27,16 @@ part 'quest_hive_model.g.dart';
 ///  6 linkedIdentityStatementIds  17 rewardTitleId
 ///  7 progressType                18 rewardAchievementId
 ///  8 currentProgress             19 hasReward
-///  9 targetProgress
+///  9 targetProgress              20 visualKey
 /// 10 deadlineUtcMicros
 /// ```
-/// Next available index: 20. This is the migration boundary — any future
-/// field is added with index 20 onward, never by reusing a gap above.
+/// Next available index: 21. This is the migration boundary — any future
+/// field is added with index 21 onward, never by reusing a gap above.
+/// [visualKey] is nullable and absent from every record written before
+/// Phase 17.2 — Hive CE fills a missing field with its default (`null`,
+/// since there is no `@HiveField(20, defaultValue: ...)` override below) on
+/// read, so pre-existing quests deserialize cleanly with `visualKey: null`
+/// rather than failing to load.
 @HiveType(typeId: HiveTypeIds.quest)
 class QuestHiveModel {
   @HiveField(0)
@@ -74,6 +79,8 @@ class QuestHiveModel {
   final String? rewardAchievementId;
   @HiveField(19)
   final bool hasReward;
+  @HiveField(20)
+  final String? visualKey;
 
   QuestHiveModel({
     required this.id,
@@ -96,5 +103,6 @@ class QuestHiveModel {
     this.rewardTitleId,
     this.rewardAchievementId,
     this.hasReward = false,
+    this.visualKey,
   });
 }

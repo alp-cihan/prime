@@ -54,6 +54,14 @@ class Quest {
   final Reward? optionalReward;
   final Repeatability repeatability;
 
+  /// Phase 17.2 — the same `'<category>/<slug>'` visual-lookup key used by
+  /// `QuestSuggestion.visualKey` (see that field's own doc for the format
+  /// and `AssetVisualResolver` for how it resolves to a bundled asset).
+  /// `null` for every quest created before this phase, and for any
+  /// hand-typed quest today — `QuestVisual` falls back to its existing
+  /// gradient placeholder in that case, exactly as it always has.
+  final String? visualKey;
+
   const Quest({
     required this.id,
     required this.title,
@@ -72,6 +80,7 @@ class Quest {
     required this.failureBehavior,
     this.optionalReward,
     this.repeatability = Repeatability.none,
+    this.visualKey,
   });
 
   Quest copyWith({
@@ -92,6 +101,7 @@ class Quest {
     FailureBehavior? failureBehavior,
     Reward? optionalReward,
     Repeatability? repeatability,
+    String? visualKey,
   }) {
     return Quest(
       id: id ?? this.id,
@@ -112,6 +122,7 @@ class Quest {
       failureBehavior: failureBehavior ?? this.failureBehavior,
       optionalReward: optionalReward ?? this.optionalReward,
       repeatability: repeatability ?? this.repeatability,
+      visualKey: visualKey ?? this.visualKey,
     );
   }
 
@@ -137,7 +148,8 @@ class Quest {
         other.state == state &&
         other.failureBehavior == failureBehavior &&
         other.optionalReward == optionalReward &&
-        other.repeatability == repeatability;
+        other.repeatability == repeatability &&
+        other.visualKey == visualKey;
   }
 
   @override
@@ -162,6 +174,7 @@ class Quest {
       failureBehavior,
       optionalReward,
       repeatability,
+      visualKey,
     ),
   );
 }
