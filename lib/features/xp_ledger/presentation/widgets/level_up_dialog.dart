@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/level_up_controller.dart';
 
 /// docs/architecture.md §14 — the level-up celebration overlay. Watches
@@ -22,6 +23,7 @@ class LevelUpDialog extends ConsumerWidget {
       levelUpControllerProvider.select((state) => state.pendingEvent),
     );
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (event == null) {
       // The pending event was cleared from elsewhere while this dialog was
@@ -49,7 +51,7 @@ class LevelUpDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'LEVEL UP',
+              l10n.levelUpEyebrow,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: AppColors.accent,
                 letterSpacing: 3,
@@ -66,8 +68,8 @@ class LevelUpDialog extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               isMultiLevelJump
-                  ? 'Level ${event.previousLevel} → Level ${event.newLevel}'
-                  : 'You reached a new level',
+                  ? l10n.levelUpMultiJump(event.previousLevel, event.newLevel)
+                  : l10n.levelUpSingle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
@@ -85,7 +87,7 @@ class LevelUpDialog extends ConsumerWidget {
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Continue'),
+                child: Text(l10n.continueLabel),
               ),
             ),
           ],

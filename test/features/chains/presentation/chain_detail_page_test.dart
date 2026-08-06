@@ -11,6 +11,7 @@ import 'package:prime/features/quests/presentation/providers/quest_repository_pr
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 
 const _chain = Chain(
   id: 'chainA',
@@ -49,7 +50,11 @@ void _growViewport(WidgetTester tester) {
 Widget _harness(List<Override> overrides) {
   return ProviderScope(
     overrides: overrides,
-    child: const MaterialApp(home: ChainDetailPage(chainId: 'chainA')),
+    child: const MaterialApp(
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+      home: ChainDetailPage(chainId: 'chainA'),
+    ),
   );
 }
 

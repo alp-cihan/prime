@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/design_system.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/entities/identity_milestone.dart';
 import '../domain/entities/identity_snapshot.dart';
 import 'models/attribute_distribution.dart';
@@ -28,7 +29,7 @@ class IdentityPage extends ConsumerWidget {
     final milestonesAsync = ref.watch(recentMilestonesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Identity')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.identityTitle)),
       body: _buildBody(
         context,
         ref,
@@ -96,6 +97,7 @@ class _IdentityError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -103,19 +105,19 @@ class _IdentityError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your identity profile.",
+              l10n.couldntLoadIdentity,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong. Please try again.',
+              l10n.somethingWentWrong,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),

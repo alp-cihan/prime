@@ -7,9 +7,13 @@ import 'package:go_router/go_router.dart';
 import 'package:prime/core/app_info.dart';
 import 'package:prime/core/app_restart_scope.dart';
 import 'package:prime/core/domain/failure.dart';
+import 'package:prime/core/localization/locale_controller.dart';
 import 'package:prime/features/settings/presentation/providers/clear_data_controller.dart';
 import 'package:prime/features/settings/presentation/settings_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
+
+import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 
 /// A test double for [ClearDataController] that never touches real Hive —
 /// `ClearLocalDataUseCase`'s own actual box-clearing mechanics are already
@@ -99,10 +103,19 @@ Widget _harness(
   );
 
   final content = ProviderScope(
-    overrides: overrides,
+    overrides: [
+      localeRepositoryProvider.overrideWithValue(FakeLocaleRepository()),
+      ...overrides,
+    ],
     child: Column(
       children: [
-        Expanded(child: MaterialApp.router(routerConfig: router)),
+        Expanded(
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: testLocalizationsDelegates,
+            supportedLocales: testSupportedLocales,
+          ),
+        ),
         if (onSentinelBuild != null) _RestartSentinel(onBuild: onSentinelBuild),
       ],
     ),

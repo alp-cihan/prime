@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../quests/domain/entities/quest.dart';
 import '../../../quests/domain/entities/quest_progress.dart';
 import '../../../quests/presentation/providers/quest_query_providers.dart';
@@ -46,6 +47,7 @@ class _FeaturedQuestContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final anchor = ref.watch(
       questOccurrenceAnchorDateProvider(quest.repeatability),
     );
@@ -85,7 +87,7 @@ class _FeaturedQuestContent extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'MAIN QUEST',
+                  l10n.mainQuestLabel,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.accent,
                     letterSpacing: 1.5,
@@ -103,9 +105,14 @@ class _FeaturedQuestContent extends ConsumerWidget {
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.xs,
                   children: [
-                    _Chip(label: questDifficultyDisplayName(quest.difficulty)),
+                    _Chip(
+                      label: questDifficultyDisplayName(
+                        context,
+                        quest.difficulty,
+                      ),
+                    ),
                     _Chip(label: '${formatXp(baseXp)} XP'),
-                    if (completedToday) const _Chip(label: 'Completed today'),
+                    if (completedToday) _Chip(label: l10n.completedTodayLabel),
                   ],
                 ),
                 if (quest.progressType != ProgressType.binary) ...[
@@ -113,7 +120,9 @@ class _FeaturedQuestContent extends ConsumerWidget {
                   _FeaturedQuestProgress(quest: quest, progress: progress),
                 ],
                 const SizedBox(height: AppSpacing.md),
-                _FeaturedQuestCta(label: _ctaLabel(quest, completedToday)),
+                _FeaturedQuestCta(
+                  label: _ctaLabel(l10n, quest, completedToday),
+                ),
               ],
             ),
           ),
@@ -122,15 +131,15 @@ class _FeaturedQuestContent extends ConsumerWidget {
     );
   }
 
-  String _ctaLabel(Quest quest, bool completedToday) {
-    if (completedToday) return 'View';
+  String _ctaLabel(AppLocalizations l10n, Quest quest, bool completedToday) {
+    if (completedToday) return l10n.ctaView;
     switch (quest.progressType) {
       case ProgressType.binary:
-        return 'Complete';
+        return l10n.ctaComplete;
       case ProgressType.quantity:
-        return 'Add Progress';
+        return l10n.ctaAddProgress;
       case ProgressType.duration:
-        return 'Continue';
+        return l10n.ctaContinue;
     }
   }
 }
@@ -203,7 +212,9 @@ class _FeaturedQuestProgress extends StatelessWidget {
     final current = progress?.progressValue ?? 0.0;
     final target = quest.targetProgress;
     final ratio = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
-    final unit = quest.progressType == ProgressType.duration ? ' min' : '';
+    final unit = quest.progressType == ProgressType.duration
+        ? AppLocalizations.of(context)!.minutesUnit
+        : '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +260,7 @@ class _NoFeaturedQuest extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'No quests yet. Quests you create will show up here.',
+            AppLocalizations.of(context)!.noQuestsYet,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
@@ -258,7 +269,7 @@ class _NoFeaturedQuest extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => context.push(AppRoutes.suggestions),
             icon: const Icon(Icons.auto_awesome_outlined, size: 18),
-            label: const Text('Browse Suggestions'),
+            label: Text(AppLocalizations.of(context)!.browseSuggestions),
           ),
         ],
       ),
@@ -307,13 +318,16 @@ class _FeaturedQuestError extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              "Couldn't load your main quest.",
+              AppLocalizations.of(context)!.couldntLoadMainQuest,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context)!.retry),
+          ),
         ],
       ),
     );

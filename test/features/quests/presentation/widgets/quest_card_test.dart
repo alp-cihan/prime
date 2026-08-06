@@ -5,6 +5,8 @@ import 'package:prime/features/quests/domain/entities/quest.dart';
 import 'package:prime/features/quests/domain/entities/quest_progress.dart';
 import 'package:prime/features/quests/presentation/widgets/quest_card.dart';
 
+import '../../../../support/test_localizations.dart';
+
 final _today = DateTime.utc(2026, 1, 10);
 
 Quest _buildQuest({
@@ -32,6 +34,8 @@ Quest _buildQuest({
 
 Widget _harness(Quest quest, QuestProgress? progress) {
   return MaterialApp(
+    localizationsDelegates: testLocalizationsDelegates,
+    supportedLocales: testSupportedLocales,
     home: Scaffold(
       body: QuestCard(quest: quest, todayProgress: progress, onTap: () {}),
     ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../xp_ledger/presentation/models/player_level_summary.dart';
 import '../../../xp_ledger/presentation/providers/player_level_providers.dart';
 
@@ -33,22 +34,22 @@ class PlayerHeader extends ConsumerWidget {
 /// Deterministic, presentation-only line — no new provider or persisted
 /// state; a small fixed rotation keyed off the current level keeps it
 /// stable within a session without inventing a "motivation" domain concept.
-const _motivationalLines = [
-  'Small consistent steps compound.',
-  'Momentum is built one quest at a time.',
-  'Discipline today, progress tomorrow.',
-  'Show up — the rest follows.',
-  'Every rep counts toward the next level.',
-];
+String _motivationalLine(AppLocalizations l10n, int level) {
+  final lines = [
+    l10n.motivationalLine1,
+    l10n.motivationalLine2,
+    l10n.motivationalLine3,
+    l10n.motivationalLine4,
+    l10n.motivationalLine5,
+  ];
+  return lines[level % lines.length];
+}
 
-String _motivationalLine(int level) =>
-    _motivationalLines[level % _motivationalLines.length];
-
-String _greeting(DateTime now) {
-  if (now.hour < 5) return 'Good night';
-  if (now.hour < 12) return 'Good morning';
-  if (now.hour < 18) return 'Good afternoon';
-  return 'Good evening';
+String _greeting(AppLocalizations l10n, DateTime now) {
+  if (now.hour < 5) return l10n.greetingNight;
+  if (now.hour < 12) return l10n.greetingMorning;
+  if (now.hour < 18) return l10n.greetingAfternoon;
+  return l10n.greetingEvening;
 }
 
 class _PlayerHeaderContent extends StatelessWidget {
@@ -59,6 +60,7 @@ class _PlayerHeaderContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final progress = summary.progressRatio.clamp(0.0, 1.0);
 
     return GradientSurfaceCard(
@@ -69,7 +71,7 @@ class _PlayerHeaderContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _greeting(DateTime.now()),
+            _greeting(l10n, DateTime.now()),
             style: theme.textTheme.titleMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
@@ -83,14 +85,14 @@ class _PlayerHeaderContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Level ${summary.currentLevel}',
+                      l10n.playerLevelLabel(summary.currentLevel),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.headlineMedium,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      '${formatXp(summary.totalXp)} XP total',
+                      l10n.playerXpTotal(formatXp(summary.totalXp)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -106,7 +108,7 @@ class _PlayerHeaderContent extends StatelessWidget {
                 size: 64,
                 strokeWidth: 6,
                 child: Text(
-                  '${(progress * 100).round()}%',
+                  l10n.percentValue((progress * 100).round()),
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -116,14 +118,17 @@ class _PlayerHeaderContent extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '${summary.xpIntoCurrentLevel} / ${summary.xpNeededForNextLevel} XP to next level',
+            l10n.playerXpToNextLevel(
+              summary.xpIntoCurrentLevel,
+              summary.xpNeededForNextLevel,
+            ),
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            _motivationalLine(summary.currentLevel),
+            _motivationalLine(l10n, summary.currentLevel),
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.darkTextSecondary,
               fontStyle: FontStyle.italic,
@@ -177,13 +182,16 @@ class _PlayerHeaderError extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              "Couldn't load your level.",
+              AppLocalizations.of(context)!.couldntLoadLevel,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context)!.retry),
+          ),
         ],
       ),
     );

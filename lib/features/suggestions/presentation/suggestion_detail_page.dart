@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/models/create_quest_from_suggestion_outcome.dart';
 import '../../quests/domain/entities/quest.dart';
 import '../domain/catalog/quest_suggestion_catalog.dart';
@@ -12,6 +13,7 @@ import '../domain/services/suggestion_match_explanation.dart';
 import 'providers/recommendation_profile_controller.dart';
 import 'providers/suggestion_creation_controller.dart';
 import 'providers/suggestions_providers.dart';
+import 'suggestion_localization.dart';
 
 /// Preview/detail screen for one catalog suggestion — `/suggestions/:id`.
 class SuggestionDetailPage extends ConsumerWidget {
@@ -25,9 +27,10 @@ class SuggestionDetailPage extends ConsumerWidget {
         .where((s) => s.id == suggestionId)
         .firstOrNull;
 
+    final l10n = AppLocalizations.of(context)!;
     if (suggestion == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Suggestion')),
+        appBar: AppBar(title: Text(l10n.suggestionsTitle)),
         body: const _SuggestionNotFound(),
       );
     }
@@ -43,11 +46,11 @@ class SuggestionDetailPage extends ConsumerWidget {
             SnackBar(
               content: Text(
                 outcome is SuggestionAlreadyAdded
-                    ? '"${outcome.quest.title}" is already in your quests'
-                    : 'Added "${outcome.quest.title}" to your quests',
+                    ? l10n.alreadyInQuests(outcome.quest.title)
+                    : l10n.addedToQuests(outcome.quest.title),
               ),
               action: SnackBarAction(
-                label: 'Open',
+                label: l10n.openLabel,
                 onPressed: () =>
                     context.go(AppRoutes.questDetail(outcome.quest.id)),
               ),
@@ -71,7 +74,10 @@ class SuggestionDetailPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(suggestion.title, overflow: TextOverflow.ellipsis),
+        title: Text(
+          suggestionTitle(context, suggestion.id),
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -89,13 +95,14 @@ class SuggestionDetailPage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    suggestion.description,
+                    suggestionDescription(context, suggestion.id),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  if (suggestion.motivation != null) ...[
+                  if (suggestionMotivation(context, suggestion.id)
+                      case final motivation?) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      suggestion.motivation!,
+                      motivation,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.darkTextSecondary,
                         fontStyle: FontStyle.italic,
@@ -141,13 +148,13 @@ class SuggestionDetailPage extends ConsumerWidget {
                               ),
                             )
                           : const Icon(Icons.add),
-                      label: const Text('Add to My Quests'),
+                      label: Text(l10n.addToMyQuestsButton),
                     ),
                   ),
                   if (creationState.hasError) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      "Couldn't add this quest. Please try again.",
+                      l10n.couldntAddQuestLong,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -172,6 +179,7 @@ class _FactsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -183,34 +191,37 @@ class _FactsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _FactRow(
-            label: 'Difficulty',
-            value: questDifficultyDisplayName(suggestion.difficulty),
+            label: l10n.difficultyLabel,
+            value: questDifficultyDisplayName(context, suggestion.difficulty),
           ),
           const SizedBox(height: AppSpacing.xs),
           _FactRow(
-            label: 'Estimated time',
-            value: '${suggestion.estimatedMinutes} min',
+            label: l10n.estimatedTimeLabel,
+            value: l10n.minutesValue(suggestion.estimatedMinutes.toString()),
           ),
           const SizedBox(height: AppSpacing.xs),
           _FactRow(
-            label: 'Repeats',
-            value: repeatabilityDisplayName(suggestion.repeatability),
+            label: l10n.repeatsLabel,
+            value: repeatabilityDisplayName(context, suggestion.repeatability),
           ),
           const SizedBox(height: AppSpacing.xs),
           _FactRow(
-            label: 'Progress target',
+            label: l10n.progressTargetLabel,
             value: suggestion.progressType == ProgressType.binary
-                ? 'Complete once'
+                ? l10n.completeOnce
                 : suggestion.targetProgress ==
                       suggestion.targetProgress.roundToDouble()
                 ? suggestion.targetProgress.toInt().toString()
                 : suggestion.targetProgress.toStringAsFixed(1),
           ),
           const SizedBox(height: AppSpacing.xs),
-          _FactRow(label: 'Base XP', value: '$baseXp XP'),
+          _FactRow(label: l10n.baseXpLabel, value: '$baseXp XP'),
           if (suggestion.attributeXpWeights.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text('Attribute allocation', style: theme.textTheme.labelLarge),
+            Text(
+              l10n.attributeAllocationLabel,
+              style: theme.textTheme.labelLarge,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Wrap(
               spacing: AppSpacing.sm,
@@ -228,7 +239,8 @@ class _FactsCard extends StatelessWidget {
                       border: Border.all(color: AppColors.darkBorder),
                     ),
                     child: Text(
-                      '${attributeDisplayName(entry.key)}: ${entry.value}',
+                      '${attributeDisplayName(context, entry.key)}: '
+                      '${entry.value}',
                       style: theme.textTheme.labelSmall,
                     ),
                   ),
@@ -281,12 +293,13 @@ class _WhyRecommended extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final reasons = <String>[
-      if (explanation.matchesLifeStage) 'Fits your life stage',
+      if (explanation.matchesLifeStage) l10n.reasonFitsLifeStage,
       for (final goal in explanation.matchingGoals)
-        'Matches your goal: ${goalAreaDisplayName(goal)}',
-      if (explanation.fitsAvailableTime) 'Fits your available time',
-      if (explanation.matchesIntensity) 'Matches your preferred pace',
+        l10n.reasonMatchesGoal(goalAreaDisplayName(context, goal)),
+      if (explanation.fitsAvailableTime) l10n.reasonFitsAvailableTime,
+      if (explanation.matchesIntensity) l10n.reasonMatchesIntensity,
     ];
 
     return Container(
@@ -300,11 +313,11 @@ class _WhyRecommended extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Why this was recommended', style: theme.textTheme.labelLarge),
+          Text(l10n.whyRecommendedHeader, style: theme.textTheme.labelLarge),
           const SizedBox(height: AppSpacing.xs),
           if (reasons.isEmpty)
             Text(
-              'A solid starting point for anyone.',
+              l10n.solidStartingPoint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
@@ -344,7 +357,7 @@ class _SuggestionNotFound extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              "This suggestion doesn't exist.",
+              AppLocalizations.of(context)!.suggestionNotFound,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],

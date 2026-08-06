@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../achievements/presentation/achievement_icon.dart';
+import '../../../achievements/presentation/achievement_localization.dart';
 import '../../../chains/presentation/chain_icon.dart';
 import '../../domain/entities/identity_milestone.dart';
 
@@ -17,15 +19,16 @@ class IdentityTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recent Milestones', style: theme.textTheme.titleMedium),
+        Text(l10n.recentMilestonesHeader, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         if (milestones.isEmpty)
           Text(
-            'No milestones yet — complete quests to start building your story.',
+            l10n.noMilestonesYet,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
@@ -64,9 +67,14 @@ class _MilestoneTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(milestone.title, style: theme.textTheme.titleSmall),
                 Text(
-                  _formatDate(milestone.occurredAt),
+                  _localizedTitle(context, milestone),
+                  style: theme.textTheme.titleSmall,
+                ),
+                Text(
+                  MaterialLocalizations.of(
+                    context,
+                  ).formatShortDate(milestone.occurredAt),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
@@ -79,6 +87,24 @@ class _MilestoneTile extends StatelessWidget {
     );
   }
 
+  /// Built from [milestone.level]/[milestone.refId] (not [milestone.title],
+  /// which `IdentityService` — a pure-Dart application service with no
+  /// access to `AppLocalizations` — always pre-builds in English; see
+  /// `IdentityMilestone`'s own doc for why both exist).
+  String _localizedTitle(BuildContext context, IdentityMilestone milestone) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (milestone.type) {
+      case IdentityMilestoneType.levelReached:
+        return l10n.milestoneReachedLevel(milestone.level!);
+      case IdentityMilestoneType.achievementUnlocked:
+        return l10n.milestoneUnlockedAchievement(
+          achievementTitle(context, milestone.refId!),
+        );
+      case IdentityMilestoneType.chainCompleted:
+        return l10n.milestoneCompletedChain(milestone.refId!);
+    }
+  }
+
   IconData _iconFor(IdentityMilestone milestone) {
     switch (milestone.type) {
       case IdentityMilestoneType.levelReached:
@@ -88,12 +114,5 @@ class _MilestoneTile extends StatelessWidget {
       case IdentityMilestoneType.chainCompleted:
         return chainIconForKey(milestone.iconKey);
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
   }
 }

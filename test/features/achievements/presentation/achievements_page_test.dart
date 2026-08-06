@@ -10,11 +10,16 @@ import 'package:prime/features/xp_ledger/presentation/providers/xp_ledger_provid
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 
 Widget _harness(List<Override> overrides) {
   return ProviderScope(
     overrides: overrides,
-    child: const MaterialApp(home: AchievementsPage()),
+    child: const MaterialApp(
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+      home: AchievementsPage(),
+    ),
   );
 }
 
@@ -91,7 +96,11 @@ void main() {
 
     expect(find.text('First Step'), findsOneWidget);
     expect(find.text('Complete your first quest.'), findsOneWidget);
-    expect(find.textContaining('2026-03-05'), findsOneWidget);
+    // Phase 17.3: the unlock date now renders through
+    // `MaterialLocalizations.formatMediumDate` (locale-aware) instead of a
+    // hardcoded ISO string — assert on the year rather than an exact format
+    // that's no longer guaranteed stable across locales/Flutter versions.
+    expect(find.textContaining('2026'), findsOneWidget);
   });
 
   testWidgets(

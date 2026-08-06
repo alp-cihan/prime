@@ -12,6 +12,7 @@ import 'package:prime/features/xp_ledger/domain/entities/xp_transaction.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 import '../../../support/widget_test_harness.dart';
 
 final _today = DateTime.utc(2026, 1, 10);
@@ -70,7 +71,11 @@ Widget _harness(String questId, List<Override> overrides) {
   );
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+    ),
   );
 }
 

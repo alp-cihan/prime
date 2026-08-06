@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../quests/domain/entities/quest.dart';
 import '../../../quests/presentation/providers/quest_query_providers.dart';
 import '../../../quests/presentation/providers/quest_repository_providers.dart';
@@ -80,7 +81,7 @@ class _NoQuests extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      'No quests yet. Quests you create will show up here.',
+      AppLocalizations.of(context)!.noQuestsYet,
       style: Theme.of(
         context,
       ).textTheme.bodyMedium?.copyWith(color: AppColors.darkTextSecondary),
@@ -99,13 +100,16 @@ class _QuestListError extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            "Couldn't load today's quests.",
+            AppLocalizations.of(context)!.couldntLoadTodayQuests,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
           ),
         ),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(
+          onPressed: onRetry,
+          child: Text(AppLocalizations.of(context)!.retry),
+        ),
       ],
     );
   }

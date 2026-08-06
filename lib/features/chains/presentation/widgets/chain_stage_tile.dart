@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../quests/presentation/providers/quest_query_providers.dart';
 import '../../domain/entities/chain_stage.dart';
 
@@ -23,6 +24,7 @@ class ChainStageTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final questAsync = ref.watch(questByIdProvider(stage.questId));
     final locked = stage.status == ChainStageStatus.locked;
 
@@ -46,14 +48,15 @@ class ChainStageTile extends ConsumerWidget {
               children: [
                 Text(
                   locked
-                      ? 'Locked'
-                      : (questAsync.value?.title ?? 'Stage ${stage.index + 1}'),
+                      ? l10n.chainStageLockedTitle
+                      : (questAsync.value?.title ??
+                            l10n.chainStageFallbackTitle(stage.index + 1)),
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: locked ? AppColors.darkTextSecondary : null,
                   ),
                 ),
                 Text(
-                  _labelFor(stage.status),
+                  _labelFor(l10n, stage.status),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
@@ -80,9 +83,10 @@ class ChainStageTile extends ConsumerWidget {
 
   /// The title already reads "Locked" for a locked stage — this subtitle
   /// stays distinct rather than repeating that word on the same tile.
-  String _labelFor(ChainStageStatus status) => switch (status) {
-    ChainStageStatus.completed => 'Completed',
-    ChainStageStatus.unlocked => 'In progress',
-    ChainStageStatus.locked => 'Complete the current stage first',
-  };
+  String _labelFor(AppLocalizations l10n, ChainStageStatus status) =>
+      switch (status) {
+        ChainStageStatus.completed => l10n.chainStageCompleted,
+        ChainStageStatus.unlocked => l10n.chainStageInProgress,
+        ChainStageStatus.locked => l10n.chainStageLockedSubtitle,
+      };
 }

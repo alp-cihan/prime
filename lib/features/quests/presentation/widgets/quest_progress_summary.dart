@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../xp_ledger/domain/entities/xp_transaction.dart';
 import '../../domain/entities/quest_progress.dart';
 
@@ -23,6 +24,7 @@ class QuestProgressSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -34,7 +36,7 @@ class QuestProgressSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Today', style: theme.textTheme.titleMedium),
+          Text(l10n.todayLabel, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           if (isLoading)
             const Padding(
@@ -42,13 +44,13 @@ class QuestProgressSummary extends StatelessWidget {
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            _buildContent(theme),
+            _buildContent(theme, l10n),
         ],
       ),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(ThemeData theme, AppLocalizations l10n) {
     final completionsToday = transactions.map((t) => t.sourceId).toSet().length;
     final xpToday = transactions.fold<int>(0, (sum, t) => sum + t.finalXp);
 
@@ -56,13 +58,16 @@ class QuestProgressSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _StatRow(
-          label: 'Completed today',
+          label: l10n.completedTodayLabel,
           value: completionsToday == 0
-              ? 'Not yet'
-              : '$completionsToday time${completionsToday == 1 ? '' : 's'}',
+              ? l10n.notYetLabel
+              : l10n.completionsCount(completionsToday),
         ),
         const SizedBox(height: AppSpacing.xs),
-        _StatRow(label: 'XP earned today', value: '$xpToday XP'),
+        _StatRow(
+          label: l10n.xpEarnedTodayLabel,
+          value: l10n.xpAmount(xpToday.toString()),
+        ),
         if (progress?.notes != null && progress!.notes!.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(

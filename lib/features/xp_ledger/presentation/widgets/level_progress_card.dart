@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/services/level_curve.dart';
 
 /// Pure presentational level card. [levelProgress] is expected to already be
@@ -19,6 +20,7 @@ class LevelProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final progressFraction = levelProgress.xpRequiredForNextLevel == 0
         ? 0.0
         : (levelProgress.currentXpIntoLevel /
@@ -38,7 +40,7 @@ class LevelProgressCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Level ${levelProgress.level}',
+                l10n.playerLevelLabel(levelProgress.level),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineMedium,
@@ -48,7 +50,7 @@ class LevelProgressCard extends StatelessWidget {
               // to shrink/truncate rather than overflow a narrow screen.
               Expanded(
                 child: Text(
-                  '$totalXp XP total',
+                  l10n.playerXpTotal(totalXp.toString()),
                   textAlign: TextAlign.right,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -71,7 +73,10 @@ class LevelProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${levelProgress.currentXpIntoLevel} / ${levelProgress.xpRequiredForNextLevel} XP to next level',
+            l10n.playerXpToNextLevel(
+              levelProgress.currentXpIntoLevel,
+              levelProgress.xpRequiredForNextLevel,
+            ),
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.darkTextSecondary,
             ),

@@ -61,6 +61,9 @@ Future<void> reopenAllBoxes() async {
   if (!Hive.isBoxOpen(HiveBoxNames.appPreferences)) {
     await Hive.openBox<bool>(HiveBoxNames.appPreferences);
   }
+  if (!Hive.isBoxOpen(HiveBoxNames.localePreference)) {
+    await Hive.openBox<String>(HiveBoxNames.localePreference);
+  }
 }
 
 /// Accessors for the already-opened boxes — call only after [bootstrapHive].
@@ -84,3 +87,6 @@ Box<RecommendationProfileHiveModel> recommendationProfileBox() =>
     );
 
 Box<bool> appPreferencesBox() => Hive.box<bool>(HiveBoxNames.appPreferences);
+
+Box<String> localePreferenceBox() =>
+    Hive.box<String>(HiveBoxNames.localePreference);

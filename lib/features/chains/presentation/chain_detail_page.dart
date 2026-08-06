@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/design_system.dart';
+import '../../../l10n/app_localizations.dart';
 import 'chain_icon.dart';
 import 'models/chain_with_progress.dart';
 import 'providers/chain_query_providers.dart';
@@ -19,7 +20,12 @@ class ChainDetailPage extends ConsumerWidget {
     final detailAsync = ref.watch(chainDetailProvider(chainId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(detailAsync.value?.chain.title ?? 'Chain')),
+      appBar: AppBar(
+        title: Text(
+          detailAsync.value?.chain.title ??
+              AppLocalizations.of(context)!.chainFallbackTitle,
+        ),
+      ),
       body: detailAsync.when(
         data: (entry) {
           if (entry == null) return const _ChainNotFound();
@@ -45,6 +51,7 @@ class _ChainDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final chain = entry.chain;
     final hidden = chain.hiddenUntilStarted && !entry.hasStarted;
 
@@ -59,7 +66,7 @@ class _ChainDetailBody extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  hidden ? 'Hidden Chain' : chain.title,
+                  hidden ? l10n.hiddenChainTitle : chain.title,
                   style: theme.textTheme.titleLarge,
                 ),
               ),
@@ -67,7 +74,7 @@ class _ChainDetailBody extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            hidden ? 'Keep playing to discover this chain.' : chain.description,
+            hidden ? l10n.hiddenChainBody : chain.description,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
@@ -84,14 +91,14 @@ class _ChainDetailBody extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${(entry.completionPercent * 100).round()}% complete'
-            '${entry.isCompleted ? ' — chain finished' : ''}',
+            l10n.chainCompletePercent((entry.completionPercent * 100).round()) +
+                (entry.isCompleted ? l10n.chainFinishedSuffix : ''),
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text('Stages', style: theme.textTheme.titleMedium),
+          Text(l10n.stagesHeader, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           for (final stage in entry.stages) ...[
             ChainStageTile(
@@ -115,7 +122,7 @@ class _ChainNotFound extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Text(
-          "This chain doesn't exist.",
+          AppLocalizations.of(context)!.chainNotFound,
           style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
@@ -130,6 +137,7 @@ class _DetailError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -137,11 +145,11 @@ class _DetailError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load this chain.",
+              l10n.couldntLoadChain,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),

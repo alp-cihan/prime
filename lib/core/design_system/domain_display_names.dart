@@ -1,101 +1,121 @@
+import 'package:flutter/widgets.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../domain/attribute_type.dart';
 import '../../features/quests/domain/entities/quest.dart';
 import '../../features/quests/domain/entities/repeatability.dart';
 
 /// Presentation-only display strings for domain enums. Kept here (not in
 /// domain) since domain must stay pure business logic with no UI-facing
-/// formatting concerns; kept as plain functions (not widgets) so they're
-/// usable from any dumb widget without pulling in Riverpod or BuildContext.
-String attributeDisplayName(AttributeType type) {
+/// formatting concerns; each function takes [BuildContext] (rather than
+/// returning a hardcoded string) so it can resolve through
+/// [AppLocalizations] — the underlying enum names themselves are never
+/// translated, only what's shown on screen.
+String attributeDisplayName(BuildContext context, AttributeType type) {
+  final l10n = AppLocalizations.of(context)!;
   switch (type) {
     case AttributeType.health:
-      return 'Health';
+      return l10n.attributeHealth;
     case AttributeType.strength:
-      return 'Strength';
+      return l10n.attributeStrength;
     case AttributeType.discipline:
-      return 'Discipline';
+      return l10n.attributeDiscipline;
     case AttributeType.knowledge:
-      return 'Knowledge';
+      return l10n.attributeKnowledge;
     case AttributeType.career:
-      return 'Career';
+      return l10n.attributeCareer;
     case AttributeType.finance:
-      return 'Finance';
+      return l10n.attributeFinance;
     case AttributeType.relationships:
-      return 'Relationships';
+      return l10n.attributeRelationships;
     case AttributeType.mindfulness:
-      return 'Mindfulness';
+      return l10n.attributeMindfulness;
   }
 }
 
-String questDifficultyDisplayName(QuestDifficulty difficulty) {
+String questDifficultyDisplayName(
+  BuildContext context,
+  QuestDifficulty difficulty,
+) {
+  final l10n = AppLocalizations.of(context)!;
   switch (difficulty) {
     case QuestDifficulty.trivial:
-      return 'Trivial';
+      return l10n.difficultyTrivial;
     case QuestDifficulty.easy:
-      return 'Easy';
+      return l10n.difficultyEasy;
     case QuestDifficulty.normal:
-      return 'Normal';
+      return l10n.difficultyNormal;
     case QuestDifficulty.hard:
-      return 'Hard';
+      return l10n.difficultyHard;
     case QuestDifficulty.veryHard:
-      return 'Very Hard';
+      return l10n.difficultyVeryHard;
   }
 }
 
-String questTypeDisplayName(QuestType type) {
+String questTypeDisplayName(BuildContext context, QuestType type) {
+  final l10n = AppLocalizations.of(context)!;
   switch (type) {
     case QuestType.daily:
-      return 'Daily Quest';
+      return l10n.questTypeDaily;
     case QuestType.weekly:
-      return 'Weekly Quest';
+      return l10n.questTypeWeekly;
     case QuestType.monthly:
-      return 'Monthly Quest';
+      return l10n.questTypeMonthly;
     case QuestType.side:
-      return 'Side Quest';
+      return l10n.questTypeSide;
     case QuestType.epic:
-      return 'Epic Quest';
+      return l10n.questTypeEpic;
     case QuestType.mainStory:
-      return 'Main Story Quest';
+      return l10n.questTypeMainStory;
     case QuestType.repeatable:
-      return 'Repeatable Quest';
+      return l10n.questTypeRepeatable;
     case QuestType.recovery:
-      return 'Recovery Quest';
+      return l10n.questTypeRecovery;
   }
 }
 
-String progressTypeDisplayName(ProgressType type) {
+String progressTypeDisplayName(BuildContext context, ProgressType type) {
+  final l10n = AppLocalizations.of(context)!;
   switch (type) {
     case ProgressType.binary:
-      return 'Binary (done / not done)';
+      return l10n.progressTypeBinary;
     case ProgressType.quantity:
-      return 'Quantity';
+      return l10n.progressTypeQuantity;
     case ProgressType.duration:
-      return 'Duration';
+      return l10n.progressTypeDuration;
   }
 }
 
-String repeatabilityDisplayName(Repeatability repeatability) {
+String repeatabilityDisplayName(
+  BuildContext context,
+  Repeatability repeatability,
+) {
+  final l10n = AppLocalizations.of(context)!;
   switch (repeatability) {
     case Repeatability.none:
-      return 'One-time';
+      return l10n.repeatabilityNone;
     case Repeatability.daily:
-      return 'Daily';
+      return l10n.repeatabilityDaily;
     case Repeatability.weekly:
-      return 'Weekly';
+      return l10n.repeatabilityWeekly;
   }
 }
 
-String questCompletionStateDisplayName(QuestCompletionState state) {
+String questCompletionStateDisplayName(
+  BuildContext context,
+  QuestCompletionState state,
+) {
+  final l10n = AppLocalizations.of(context)!;
   switch (state) {
     case QuestCompletionState.notStarted:
-      return 'Not started';
+      return l10n.questStateNotStarted;
     case QuestCompletionState.inProgress:
-      return 'In progress';
+      return l10n.questStateInProgress;
     case QuestCompletionState.complete:
-      return 'Complete';
+      return l10n.questStateComplete;
     case QuestCompletionState.expired:
-      return 'Expired';
+      return l10n.questStateExpired;
     case QuestCompletionState.converted:
-      return 'Converted';
+      return l10n.questStateConverted;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/quest.dart';
 import '../../domain/entities/quest_progress.dart';
 import '../providers/quest_progress_controller.dart';
@@ -27,6 +28,7 @@ class DurationQuestControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final anchor = ref.watch(
       questOccurrenceAnchorDateProvider(quest.repeatability),
     );
@@ -42,13 +44,13 @@ class DurationQuestControls extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Progress', style: theme.textTheme.titleMedium),
+        Text(l10n.progressLabel, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '${current.toInt()} / ${target.toInt()} min',
+              '${current.toInt()} / ${target.toInt()}${l10n.minutesUnit}',
               style: theme.textTheme.bodyLarge,
             ),
             Text(
@@ -83,7 +85,7 @@ class DurationQuestControls extends ConsumerWidget {
                       amount: _decrementMinutes,
                     ),
               icon: const Icon(Icons.remove),
-              label: Text('-${_decrementMinutes.toInt()} min'),
+              label: Text(l10n.decrementMinutes(_decrementMinutes.toInt())),
             ),
             for (final minutes in _quickAddMinutes)
               FilledButton.tonalIcon(
@@ -92,7 +94,7 @@ class DurationQuestControls extends ConsumerWidget {
                     : () =>
                           notifier.increment(quest.id, anchor, amount: minutes),
                 icon: const Icon(Icons.add),
-                label: Text('${minutes.toInt()} min'),
+                label: Text(l10n.minutesValue(minutes.toInt().toString())),
               ),
           ],
         ),

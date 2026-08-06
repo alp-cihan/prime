@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/entities/recommendation_profile.dart';
 import 'providers/recommendation_profile_controller.dart';
 
@@ -44,9 +45,11 @@ class _RecommendationProfileEditorPageState
         if (previous?.isLoading == true && next.hasValue && _initialized) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).clearSnackBars();
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Preferences saved')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.preferencesSaved),
+            ),
+          );
           context.pop();
         } else if (next.hasError) {
           debugPrint('Save recommendation profile failed: ${next.error}');
@@ -55,7 +58,9 @@ class _RecommendationProfileEditorPageState
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Suggestion Preferences')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.suggestionPreferencesTitle),
+      ),
       body: profileAsync.when(
         data: (profile) {
           _initializeFrom(profile);
@@ -92,7 +97,7 @@ class _RecommendationProfileEditorPageState
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Text(
-              "Couldn't load your preferences.",
+              AppLocalizations.of(context)!.couldntLoadPreferences,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
@@ -129,31 +134,32 @@ class _EditorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        _SectionLabel('Life stage'),
+        _SectionLabel(l10n.lifeStageSectionLabel),
         Wrap(
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: [
             for (final stage in LifeStage.values)
               ChoiceChip(
-                label: Text(lifeStageDisplayName(stage)),
+                label: Text(lifeStageDisplayName(context, stage)),
                 selected: lifeStage == stage,
                 onSelected: (_) => onLifeStageChanged(stage),
               ),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        _SectionLabel('What are you working on?'),
+        _SectionLabel(l10n.workingOnSectionLabel),
         Wrap(
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: [
             for (final goal in GoalArea.values)
               FilterChip(
-                label: Text(goalAreaDisplayName(goal)),
+                label: Text(goalAreaDisplayName(context, goal)),
                 avatar: Icon(goalAreaIcon(goal), size: 16),
                 selected: goals.contains(goal),
                 onSelected: (_) => onGoalToggled(goal),
@@ -161,28 +167,28 @@ class _EditorBody extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        _SectionLabel('Available time per day'),
+        _SectionLabel(l10n.availableTimeSectionLabel),
         Wrap(
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: [
             for (final time in AvailableTime.values)
               ChoiceChip(
-                label: Text(availableTimeDisplayName(time)),
+                label: Text(availableTimeDisplayName(context, time)),
                 selected: availableTime == time,
                 onSelected: (_) => onAvailableTimeChanged(time),
               ),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        _SectionLabel('Preferred intensity'),
+        _SectionLabel(l10n.preferredIntensitySectionLabel),
         Wrap(
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: [
             for (final value in PreferredIntensity.values)
               ChoiceChip(
-                label: Text(preferredIntensityDisplayName(value)),
+                label: Text(preferredIntensityDisplayName(context, value)),
                 selected: intensity == value,
                 onSelected: (_) => onIntensityChanged(value),
               ),
@@ -204,7 +210,7 @@ class _EditorBody extends StatelessWidget {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Save Preferences'),
+              : Text(l10n.savePreferencesButton),
         ),
       ],
     );

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../application/models/create_quest_from_suggestion_outcome.dart';
 import '../../domain/entities/quest_suggestion.dart';
 import '../providers/suggestion_creation_controller.dart';
+import '../suggestion_localization.dart';
 
 /// Image-forward suggestion card for the Suggestions page's single-column
 /// list — reuses the Phase 15 visual system (`GradientSurfaceCard`,
@@ -35,6 +37,7 @@ class SuggestionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final baseXp = suggestion.attributeXpWeights.values.fold<int>(
       0,
       (sum, value) => sum + value,
@@ -72,14 +75,14 @@ class SuggestionCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  suggestion.title,
+                  suggestionTitle(context, suggestion.id),
                   maxLines: 2,
                   overflow: TextOverflow.clip,
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  suggestion.description,
+                  suggestionDescription(context, suggestion.id),
                   maxLines: 2,
                   overflow: TextOverflow.clip,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -91,9 +94,16 @@ class SuggestionCard extends ConsumerWidget {
                   spacing: AppSpacing.xs,
                   runSpacing: AppSpacing.xs,
                   children: [
-                    _MetaChip(label: '${suggestion.estimatedMinutes} min'),
                     _MetaChip(
-                      label: questDifficultyDisplayName(suggestion.difficulty),
+                      label: l10n.minutesValue(
+                        suggestion.estimatedMinutes.toString(),
+                      ),
+                    ),
+                    _MetaChip(
+                      label: questDifficultyDisplayName(
+                        context,
+                        suggestion.difficulty,
+                      ),
                     ),
                     _MetaChip(label: '$baseXp XP'),
                   ],
@@ -127,13 +137,13 @@ class SuggestionCard extends ConsumerWidget {
                             ),
                           )
                         : const Icon(Icons.add, size: 18),
-                    label: const Text('Add Quest'),
+                    label: Text(l10n.addQuestButton),
                   ),
                 ),
                 if (creationState.hasError) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    "Couldn't add this quest. Try again.",
+                    l10n.couldntAddQuestShort,
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
                     ),

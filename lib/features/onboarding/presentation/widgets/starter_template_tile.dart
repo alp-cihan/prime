@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../domain/catalog/starter_quest_template.dart';
+import '../starter_template_localization.dart';
 
 /// A single selectable starter-quest suggestion — tapping toggles selection;
 /// nothing is created until the onboarding page's own "Get Started" action
@@ -50,11 +51,14 @@ class StarterTemplateTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(template.title, style: theme.textTheme.titleSmall),
+                    Text(
+                      starterTemplateTitle(context, template.id),
+                      style: theme.textTheme.titleSmall,
+                    ),
                     const SizedBox(height: 2),
                     Text(
-                      '${attributeDisplayName(primaryAttribute)} · '
-                      '${questDifficultyDisplayName(template.difficulty)}',
+                      '${attributeDisplayName(context, primaryAttribute)} · '
+                      '${questDifficultyDisplayName(context, template.difficulty)}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.darkTextSecondary,
                       ),

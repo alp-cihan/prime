@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Pure presentational button — the caller owns what happens on press and
 /// whether a completion is currently in flight. No provider reads here.
@@ -36,7 +37,7 @@ class CompleteQuestButton extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : const Text('Complete Quest'),
+            : Text(AppLocalizations.of(context)!.completeQuestButton),
       ),
     );
   }

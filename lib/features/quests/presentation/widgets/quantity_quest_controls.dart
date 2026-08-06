@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/quest.dart';
 import '../../domain/entities/quest_progress.dart';
 import '../providers/quest_progress_controller.dart';
@@ -40,6 +41,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final anchor = ref.watch(
       questOccurrenceAnchorDateProvider(widget.quest.repeatability),
     );
@@ -54,7 +56,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Progress', style: theme.textTheme.titleMedium),
+        Text(l10n.progressLabel, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -91,7 +93,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
                         .read(questProgressControllerProvider.notifier)
                         .decrement(widget.quest.id, anchor),
               icon: const Icon(Icons.remove),
-              tooltip: 'Decrease by 1',
+              tooltip: l10n.decreaseBy1,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -114,7 +116,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
                         .read(questProgressControllerProvider.notifier)
                         .increment(widget.quest.id, anchor),
               icon: const Icon(Icons.add, color: Colors.white),
-              tooltip: 'Increase by 1',
+              tooltip: l10n.increaseBy1,
             ),
           ],
         ),
@@ -128,8 +130,8 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Custom amount',
+                decoration: InputDecoration(
+                  labelText: l10n.customAmountLabel,
                   isDense: true,
                 ),
                 onChanged: (value) => setState(
@@ -143,7 +145,7 @@ class _QuantityQuestControlsState extends ConsumerState<QuantityQuestControls> {
               onPressed: isLoading || !_customAmountValid
                   ? null
                   : _submitCustomAmount,
-              child: const Text('Add'),
+              child: Text(l10n.addButton),
             ),
           ],
         ),

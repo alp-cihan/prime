@@ -7,6 +7,7 @@ import '../../features/achievements/presentation/widgets/achievement_unlock_dial
 import '../../features/chains/presentation/providers/chain_evaluation_controller.dart';
 import '../../features/xp_ledger/presentation/providers/level_up_controller.dart';
 import '../../features/xp_ledger/presentation/widgets/level_up_dialog.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Bottom navigation chrome for the 5-tab shell. Each branch keeps its own
 /// navigation stack via [StatefulShellRoute.indexedStack] — switching tabs
@@ -54,6 +55,7 @@ class ScaffoldWithNavBar extends ConsumerWidget {
     // shell exists) is the simplest way to do that without inventing a
     // dialog just to justify the read.
     ref.watch(chainEvaluationControllerProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: navigationShell,
@@ -63,31 +65,31 @@ class ScaffoldWithNavBar extends ConsumerWidget {
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: 'Today',
+            icon: const Icon(Icons.today_outlined),
+            selectedIcon: const Icon(Icons.today),
+            label: l10n.navToday,
           ),
           NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: 'Quests',
+            icon: const Icon(Icons.checklist_outlined),
+            selectedIcon: const Icon(Icons.checklist),
+            label: l10n.navQuests,
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_stories_outlined),
-            selectedIcon: Icon(Icons.auto_stories),
-            label: 'Story',
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
+            label: l10n.navStory,
           ),
           NavigationDestination(
-            icon: Icon(Icons.book_outlined),
-            selectedIcon: Icon(Icons.book),
-            label: 'Journal',
+            icon: const Icon(Icons.book_outlined),
+            selectedIcon: const Icon(Icons.book),
+            label: l10n.navJournal,
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'You',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: l10n.navYou,
           ),
         ],
       ),

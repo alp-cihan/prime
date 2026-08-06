@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../application/models/create_quest_from_suggestion_outcome.dart';
 import '../domain/entities/recommendation_profile.dart';
 import 'providers/ranked_suggestions_provider.dart';
@@ -23,15 +24,16 @@ class SuggestionsPage extends ConsumerWidget {
     final profileAsync = ref.watch(recommendationProfileControllerProvider);
     final suggestionsAsync = ref.watch(rankedSuggestionsProvider);
     final filterGoals = ref.watch(suggestionFilterControllerProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Suggestions'),
+        title: Text(l10n.suggestionsTitle),
         actions: [
           IconButton(
             onPressed: () => context.push(AppRoutes.suggestionsPreferences),
             icon: const Icon(Icons.tune),
-            tooltip: 'Preferences',
+            tooltip: l10n.preferencesTooltip,
           ),
         ],
       ),
@@ -95,8 +97,8 @@ class SuggestionsPage extends ConsumerWidget {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) {
                   debugPrint('Ranked suggestions failed to load: $error');
-                  return const _EmptySuggestions(
-                    message: "Couldn't load suggestions. Please try again.",
+                  return _EmptySuggestions(
+                    message: l10n.couldntLoadSuggestions,
                   );
                 },
               ),
@@ -111,18 +113,17 @@ class SuggestionsPage extends ConsumerWidget {
     BuildContext context,
     CreateQuestFromSuggestionOutcome outcome,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final message = switch (outcome) {
-      SuggestionQuestCreated() =>
-        'Added "${outcome.quest.title}" to your quests',
-      SuggestionAlreadyAdded() =>
-        '"${outcome.quest.title}" is already in your quests',
+      SuggestionQuestCreated() => l10n.addedToQuests(outcome.quest.title),
+      SuggestionAlreadyAdded() => l10n.alreadyInQuests(outcome.quest.title),
     };
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         action: SnackBarAction(
-          label: 'Open',
+          label: l10n.openLabel,
           onPressed: () => context.go(AppRoutes.questDetail(outcome.quest.id)),
         ),
       ),
@@ -138,20 +139,19 @@ class _Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isPersonalized = profile?.isPersonalized ?? false;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isPersonalized ? 'Picked for you' : 'Popular quests to start with',
+          isPersonalized ? l10n.pickedForYou : l10n.popularQuestsToStart,
           style: theme.textTheme.headlineSmall,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          isPersonalized
-              ? 'Based on your goals, routine, and pace.'
-              : 'Set your preferences for picks made just for you.',
+          isPersonalized ? l10n.basedOnGoals : l10n.setPreferencesForPicks,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: AppColors.darkTextSecondary,
           ),
@@ -172,9 +172,7 @@ class _EmptySuggestions extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Text(
-          message ??
-              "You've added every suggestion — nice work. Create a custom "
-                  'quest for anything else.',
+          message ?? AppLocalizations.of(context)!.noSuggestionsLeft,
           textAlign: TextAlign.center,
           style: Theme.of(
             context,

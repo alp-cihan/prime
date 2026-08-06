@@ -1,54 +1,57 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../features/suggestions/domain/entities/recommendation_profile.dart';
 
 /// Presentation-only display strings/icons for the Phase 16 recommendation
 /// enums — same rationale as `domain_display_names.dart`: kept out of the
-/// domain layer, kept as plain functions so any dumb widget can use them
-/// without pulling in Riverpod or BuildContext.
-String lifeStageDisplayName(LifeStage stage) {
+/// domain layer, each taking [BuildContext] to resolve through
+/// [AppLocalizations] rather than returning a hardcoded string.
+String lifeStageDisplayName(BuildContext context, LifeStage stage) {
+  final l10n = AppLocalizations.of(context)!;
   switch (stage) {
     case LifeStage.student:
-      return 'Student';
+      return l10n.lifeStageStudent;
     case LifeStage.workingProfessional:
-      return 'Working professional';
+      return l10n.lifeStageWorkingProfessional;
     case LifeStage.entrepreneur:
-      return 'Entrepreneur';
+      return l10n.lifeStageEntrepreneur;
     case LifeStage.homemaker:
-      return 'Homemaker';
+      return l10n.lifeStageHomemaker;
     case LifeStage.retired:
-      return 'Retired';
+      return l10n.lifeStageRetired;
     case LifeStage.other:
-      return 'Other';
+      return l10n.lifeStageOther;
   }
 }
 
-String goalAreaDisplayName(GoalArea goal) {
+String goalAreaDisplayName(BuildContext context, GoalArea goal) {
+  final l10n = AppLocalizations.of(context)!;
   switch (goal) {
     case GoalArea.study:
-      return 'Study';
+      return l10n.goalAreaStudy;
     case GoalArea.career:
-      return 'Career';
+      return l10n.goalAreaCareer;
     case GoalArea.fitness:
-      return 'Fitness';
+      return l10n.goalAreaFitness;
     case GoalArea.nutrition:
-      return 'Nutrition';
+      return l10n.goalAreaNutrition;
     case GoalArea.sleep:
-      return 'Sleep';
+      return l10n.goalAreaSleep;
     case GoalArea.reading:
-      return 'Reading';
+      return l10n.goalAreaReading;
     case GoalArea.mindfulness:
-      return 'Mindfulness';
+      return l10n.goalAreaMindfulness;
     case GoalArea.finance:
-      return 'Finance';
+      return l10n.goalAreaFinance;
     case GoalArea.relationships:
-      return 'Relationships';
+      return l10n.goalAreaRelationships;
     case GoalArea.organization:
-      return 'Organization';
+      return l10n.goalAreaOrganization;
     case GoalArea.creativity:
-      return 'Creativity';
+      return l10n.goalAreaCreativity;
     case GoalArea.selfCare:
-      return 'Self-care';
+      return l10n.goalAreaSelfCare;
   }
 }
 
@@ -81,26 +84,31 @@ IconData goalAreaIcon(GoalArea goal) {
   }
 }
 
-String availableTimeDisplayName(AvailableTime time) {
+String availableTimeDisplayName(BuildContext context, AvailableTime time) {
+  final l10n = AppLocalizations.of(context)!;
   switch (time) {
     case AvailableTime.under15:
-      return 'Under 15 minutes';
+      return l10n.availableTimeUnder15;
     case AvailableTime.min15to30:
-      return '15–30 minutes';
+      return l10n.availableTime15to30;
     case AvailableTime.min30to60:
-      return '30–60 minutes';
+      return l10n.availableTime30to60;
     case AvailableTime.over60:
-      return 'Over 60 minutes';
+      return l10n.availableTimeOver60;
   }
 }
 
-String preferredIntensityDisplayName(PreferredIntensity intensity) {
+String preferredIntensityDisplayName(
+  BuildContext context,
+  PreferredIntensity intensity,
+) {
+  final l10n = AppLocalizations.of(context)!;
   switch (intensity) {
     case PreferredIntensity.gentle:
-      return 'Gentle';
+      return l10n.intensityGentle;
     case PreferredIntensity.balanced:
-      return 'Balanced';
+      return l10n.intensityBalanced;
     case PreferredIntensity.challenging:
-      return 'Challenging';
+      return l10n.intensityChallenging;
   }
 }

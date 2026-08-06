@@ -37,6 +37,9 @@ Future<ProviderContainer> buildTestContainer({
   final appPreferencesBox = await Hive.openBox<bool>(
     HiveBoxNames.appPreferences,
   );
+  final localePreferenceBox = await Hive.openBox<String>(
+    HiveBoxNames.localePreference,
+  );
 
   return ProviderContainer(
     overrides: [
@@ -49,6 +52,7 @@ Future<ProviderContainer> buildTestContainer({
         recommendationProfileBox,
       ),
       appPreferencesHiveBoxProvider.overrideWithValue(appPreferencesBox),
+      localePreferenceHiveBoxProvider.overrideWithValue(localePreferenceBox),
       ...extraOverrides,
     ],
   );

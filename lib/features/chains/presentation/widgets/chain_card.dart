@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../quests/presentation/providers/quest_query_providers.dart';
 import '../chain_icon.dart';
 import '../models/chain_with_progress.dart';
@@ -19,6 +20,7 @@ class ChainCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final chain = entry.chain;
     final hidden = chain.hiddenUntilStarted && !entry.hasStarted;
     final currentStage = entry.currentStage;
@@ -50,12 +52,12 @@ class ChainCard extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      hidden ? 'Hidden Chain' : chain.title,
+                      hidden ? l10n.hiddenChainTitle : chain.title,
                       style: theme.textTheme.titleSmall,
                     ),
                   ),
                   Text(
-                    '${(entry.completionPercent * 100).round()}%',
+                    l10n.percentValue((entry.completionPercent * 100).round()),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: AppColors.accent,
                     ),
@@ -64,9 +66,7 @@ class ChainCard extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                hidden
-                    ? 'Keep playing to discover this chain.'
-                    : chain.description,
+                hidden ? l10n.hiddenChainBody : chain.description,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.darkTextSecondary,
                 ),
@@ -84,7 +84,9 @@ class ChainCard extends ConsumerWidget {
               if (!hidden && currentQuestAsync != null) ...[
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Current: ${currentQuestAsync.value?.title ?? '…'}',
+                  l10n.chainCurrentQuestLabel(
+                    currentQuestAsync.value?.title ?? '…',
+                  ),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),

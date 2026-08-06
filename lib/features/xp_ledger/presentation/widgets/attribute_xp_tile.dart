@@ -56,7 +56,7 @@ class AttributeXpTile extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  attributeDisplayName(attribute),
+                  attributeDisplayName(context, attribute),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium,

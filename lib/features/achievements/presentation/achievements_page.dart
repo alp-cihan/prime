@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design_system/design_system.dart';
+import '../../../l10n/app_localizations.dart';
 import 'achievement_icon.dart';
+import 'achievement_localization.dart';
 import 'models/locked_achievement_progress.dart';
 import 'models/unlocked_achievement.dart';
 import 'providers/achievement_query_providers.dart';
@@ -20,7 +22,9 @@ class AchievementsPage extends ConsumerWidget {
     final lockedAsync = ref.watch(lockedAchievementsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Achievements')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.achievementsTitle),
+      ),
       body: _buildBody(context, ref, unlockedAsync, lockedAsync),
     );
   }
@@ -50,26 +54,33 @@ class AchievementsPage extends ConsumerWidget {
     final unlocked = unlockedAsync.value ?? const <UnlockedAchievement>[];
     final locked = lockedAsync.value ?? const <LockedAchievementProgress>[];
     final total = unlocked.length + locked.length;
+    final l10n = AppLocalizations.of(context)!;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
         _SummaryHeader(unlockedCount: unlocked.length, total: total),
         const SizedBox(height: AppSpacing.lg),
-        Text('Unlocked', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.unlockedSectionHeader,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (unlocked.isEmpty)
-          const _SectionNote('None yet — complete quests to start unlocking.')
+          _SectionNote(l10n.noneUnlockedYet)
         else
           for (final entry in unlocked) ...[
             _UnlockedTile(entry: entry),
             const SizedBox(height: AppSpacing.sm),
           ],
         const SizedBox(height: AppSpacing.lg),
-        Text('Locked', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.lockedSectionHeader,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (locked.isEmpty)
-          const _SectionNote('Every achievement is unlocked.')
+          _SectionNote(l10n.allUnlocked)
         else
           for (final entry in locked) ...[
             _LockedTile(entry: entry),
@@ -89,6 +100,7 @@ class _SummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -99,9 +111,9 @@ class _SummaryHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Unlocked', style: theme.textTheme.bodyMedium),
+          Text(l10n.unlockedSectionHeader, style: theme.textTheme.bodyMedium),
           Text(
-            '$unlockedCount / $total',
+            l10n.achievementSummaryCount(unlockedCount, total),
             style: theme.textTheme.titleMedium?.copyWith(
               color: AppColors.accent,
               fontWeight: FontWeight.w700,
@@ -142,17 +154,24 @@ class _UnlockedTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(achievement.title, style: theme.textTheme.titleSmall),
+                Text(
+                  achievementTitle(context, achievement.id),
+                  style: theme.textTheme.titleSmall,
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  achievement.description,
+                  achievementDescription(context, achievement.id),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Unlocked ${_formatDate(entry.unlockedAt)}',
+                  AppLocalizations.of(context)!.unlockedOn(
+                    MaterialLocalizations.of(
+                      context,
+                    ).formatShortDate(entry.unlockedAt),
+                  ),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
@@ -199,14 +218,16 @@ class _LockedTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  hidden ? 'Hidden Achievement' : achievement.title,
+                  hidden
+                      ? AppLocalizations.of(context)!.hiddenAchievementTitle
+                      : achievementTitle(context, achievement.id),
                   style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   hidden
-                      ? 'Keep playing to reveal this achievement.'
-                      : achievement.description,
+                      ? AppLocalizations.of(context)!.hiddenAchievementBody
+                      : achievementDescription(context, achievement.id),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.darkTextSecondary,
                   ),
@@ -257,6 +278,7 @@ class _AchievementsError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint('Achievements failed to load: $error');
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -265,29 +287,22 @@ class _AchievementsError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your achievements.",
+              l10n.couldntLoadAchievements,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading achievements. Please try again.',
+              l10n.achievementsLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),
     );
   }
-}
-
-String _formatDate(DateTime date) {
-  final y = date.year.toString().padLeft(4, '0');
-  final m = date.month.toString().padLeft(2, '0');
-  final d = date.day.toString().padLeft(2, '0');
-  return '$y-$m-$d';
 }

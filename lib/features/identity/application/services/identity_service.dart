@@ -166,6 +166,7 @@ class IdentityService {
             title: 'Unlocked "${achievement.title}"',
             iconKey: achievement.iconKey,
             occurredAt: unlock.unlockedAt,
+            refId: achievement.id,
           ),
       for (final progress in chainProgressList)
         if (progress.completedAt != null)
@@ -175,6 +176,7 @@ class IdentityService {
               title: 'Completed "${chain.title}"',
               iconKey: chain.iconKey,
               occurredAt: progress.completedAt!,
+              refId: chain.title,
             ),
     ];
 
@@ -205,6 +207,7 @@ class IdentityService {
               title: 'Reached Level $level',
               iconKey: 'star',
               occurredAt: t.createdAt,
+              level: level,
             ),
           );
         }

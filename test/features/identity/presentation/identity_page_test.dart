@@ -12,6 +12,7 @@ import 'package:prime/features/xp_ledger/presentation/providers/xp_ledger_provid
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 
 class _ThrowingXpLedgerRepository implements XpLedgerRepository {
   @override
@@ -47,7 +48,11 @@ class _ThrowingXpLedgerRepository implements XpLedgerRepository {
 Widget _harness(List<Override> overrides) {
   return ProviderScope(
     overrides: overrides,
-    child: const MaterialApp(home: IdentityPage()),
+    child: const MaterialApp(
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+      home: IdentityPage(),
+    ),
   );
 }
 
@@ -180,7 +185,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Unlocked "First Step"'), findsOneWidget);
-    expect(find.textContaining('2026-03-05'), findsOneWidget);
+    // Phase 17.3: the milestone date now renders through
+    // `MaterialLocalizations.formatMediumDate` (locale-aware) instead of a
+    // hardcoded ISO string — assert on the year rather than an exact format
+    // that's no longer guaranteed stable across locales/Flutter versions.
+    expect(find.textContaining('2026'), findsOneWidget);
   });
 
   testWidgets('shows a retryable error state when loading fails', (

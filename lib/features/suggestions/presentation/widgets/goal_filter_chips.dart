@@ -29,7 +29,7 @@ class GoalFilterChips extends StatelessWidget {
           final goal = GoalArea.values[index];
           final isSelected = selected.contains(goal);
           return ChoiceChip(
-            label: Text(goalAreaDisplayName(goal)),
+            label: Text(goalAreaDisplayName(context, goal)),
             avatar: Icon(goalAreaIcon(goal), size: 16),
             selected: isSelected,
             onSelected: (_) => onToggle(goal),

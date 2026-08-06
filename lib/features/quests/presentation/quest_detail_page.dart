@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/design_system/design_system.dart';
 import '../../../core/domain/failure.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../xp_ledger/presentation/providers/xp_ledger_providers.dart';
 import '../application/models/complete_quest_command.dart';
 import '../application/models/complete_quest_result.dart';
@@ -66,7 +67,11 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
           ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Quest completed — +${result.totalXpAwarded} XP'),
+              content: Text(
+                AppLocalizations.of(
+                  context,
+                )!.questCompletedXp(result.totalXpAwarded),
+              ),
             ),
           );
         } else if (next.hasError) {
@@ -96,8 +101,9 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Quest completed — '
-                '+${result.completionResult!.totalXpAwarded} XP',
+                AppLocalizations.of(
+                  context,
+                )!.questCompletedXp(result.completionResult!.totalXpAwarded),
               ),
             ),
           );
@@ -122,10 +128,11 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
       }
     });
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          questAsync.value?.title ?? 'Quest',
+          questAsync.value?.title ?? l10n.questFallbackTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -135,7 +142,7 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
                 ? null
                 : () => context.go(AppRoutes.questEdit(widget.questId)),
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit Quest',
+            tooltip: l10n.editQuestTooltip,
           ),
           IconButton(
             onPressed: deleteState.isLoading
@@ -148,7 +155,7 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.delete_outline),
-            tooltip: 'Delete Quest',
+            tooltip: l10n.deleteQuestTooltip,
           ),
         ],
       ),
@@ -173,25 +180,23 @@ class _QuestDetailPageState extends ConsumerState<QuestDetailPage> {
   /// already disabled while [deleteQuestControllerProvider] is loading.
   Future<void> _confirmDelete(BuildContext context, Quest? quest) async {
     if (quest == null) return;
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete quest?'),
-        content: Text(
-          'Delete "${quest.title}"? This removes the quest and its daily '
-          'progress. XP you already earned from it is kept.',
-        ),
+        title: Text(l10n.deleteQuestDialogTitle),
+        content: Text(l10n.deleteQuestDialogBody(quest.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -358,7 +363,7 @@ class _CompletedBinaryIndicator extends StatelessWidget {
             // above already uses that exact string as a stat *label*
             // (present regardless of completion state), and this is a
             // separate, unconditional-on-this-screen status indicator.
-            'Quest complete for today',
+            AppLocalizations.of(context)!.questCompleteForToday,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: AppColors.accent),
@@ -385,7 +390,7 @@ class _ProgressOperationError extends ConsumerWidget {
     final failure = state.error;
     final message = failure is Failure
         ? failure.message
-        : 'Something went wrong. Please try again.';
+        : AppLocalizations.of(context)!.somethingWentWrong;
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -410,7 +415,7 @@ class _ProgressOperationError extends ConsumerWidget {
             TextButton(
               onPressed: () =>
                   ref.read(questProgressControllerProvider.notifier).reset(),
-              child: const Text('Dismiss'),
+              child: Text(AppLocalizations.of(context)!.dismiss),
             ),
           ],
         ),
@@ -428,6 +433,7 @@ class _QuestFacts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -438,27 +444,33 @@ class _QuestFacts extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _FactRow(label: 'Type', value: questTypeDisplayName(quest.type)),
-          const SizedBox(height: AppSpacing.xs),
           _FactRow(
-            label: 'Difficulty',
-            value: questDifficultyDisplayName(quest.difficulty),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          _FactRow(label: 'Base XP', value: '$baseXp XP'),
-          const SizedBox(height: AppSpacing.xs),
-          _FactRow(
-            label: 'Repeats',
-            value: repeatabilityDisplayName(quest.repeatability),
+            label: l10n.typeLabel,
+            value: questTypeDisplayName(context, quest.type),
           ),
           const SizedBox(height: AppSpacing.xs),
           _FactRow(
-            label: 'Status',
-            value: questCompletionStateDisplayName(quest.state),
+            label: l10n.difficultyLabel,
+            value: questDifficultyDisplayName(context, quest.difficulty),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          _FactRow(label: l10n.baseXpLabel, value: '$baseXp XP'),
+          const SizedBox(height: AppSpacing.xs),
+          _FactRow(
+            label: l10n.repeatsLabel,
+            value: repeatabilityDisplayName(context, quest.repeatability),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          _FactRow(
+            label: l10n.statusLabel,
+            value: questCompletionStateDisplayName(context, quest.state),
           ),
           if (quest.attributeXpWeights.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text('Attribute allocation', style: theme.textTheme.labelLarge),
+            Text(
+              l10n.attributeAllocationLabel,
+              style: theme.textTheme.labelLarge,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Wrap(
               spacing: AppSpacing.sm,
@@ -466,7 +478,7 @@ class _QuestFacts extends StatelessWidget {
               children: [
                 for (final entry in quest.attributeXpWeights.entries)
                   _FactRow(
-                    label: attributeDisplayName(entry.key),
+                    label: attributeDisplayName(context, entry.key),
                     value: '${entry.value}',
                     compact: true,
                   ),
@@ -543,7 +555,7 @@ class _QuestNotFound extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              "This quest doesn't exist or was removed.",
+              AppLocalizations.of(context)!.questNotFound,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -565,6 +577,7 @@ class _DetailError extends StatelessWidget {
     // rendered directly (a ProviderException's toString() embeds its whole
     // stack trace, which caused a real layout overflow).
     debugPrint('Quest detail failed to load: $error');
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -573,19 +586,19 @@ class _DetailError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load this quest.",
+              l10n.couldntLoadQuest,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading this quest. Please try again.',
+              l10n.questLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),
@@ -602,9 +615,10 @@ class _CompletionError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final message = failure is Failure
         ? (failure as Failure).message
-        : 'Something went wrong. Please try again.';
+        : l10n.somethingWentWrong;
 
     return Container(
       width: double.infinity,
@@ -618,7 +632,7 @@ class _CompletionError extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Couldn\'t complete this quest',
+            l10n.couldntCompleteQuest,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: AppColors.darkTextPrimary),
@@ -631,7 +645,7 @@ class _CompletionError extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/quest.dart';
 import '../../domain/entities/quest_progress.dart';
 
@@ -79,10 +80,17 @@ class QuestCard extends StatelessWidget {
                   spacing: AppSpacing.sm,
                   runSpacing: AppSpacing.xs,
                   children: [
-                    _Chip(label: questDifficultyDisplayName(quest.difficulty)),
+                    _Chip(
+                      label: questDifficultyDisplayName(
+                        context,
+                        quest.difficulty,
+                      ),
+                    ),
                     _Chip(label: '${formatXp(baseXp)} XP'),
                     if (primaryAttribute != null)
-                      _Chip(label: attributeDisplayName(primaryAttribute)),
+                      _Chip(
+                        label: attributeDisplayName(context, primaryAttribute),
+                      ),
                   ],
                 ),
                 _CompactProgress(quest: quest, todayProgress: todayProgress),
@@ -124,7 +132,7 @@ class _CompactProgress extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(top: AppSpacing.xs),
         child: Text(
-          'Completed today',
+          AppLocalizations.of(context)!.completedTodayLabel,
           style: theme.textTheme.labelSmall?.copyWith(color: AppColors.accent),
         ),
       );
@@ -133,7 +141,9 @@ class _CompactProgress extends StatelessWidget {
     final current = todayProgress?.progressValue ?? 0.0;
     final target = quest.targetProgress;
     final ratio = target <= 0 ? 0.0 : (current / target).clamp(0.0, 1.0);
-    final unit = quest.progressType == ProgressType.duration ? ' min' : '';
+    final unit = quest.progressType == ProgressType.duration
+        ? AppLocalizations.of(context)!.minutesUnit
+        : '';
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.xs),

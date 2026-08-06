@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:prime/core/domain/attribute_type.dart';
+import 'package:prime/core/localization/app_locale_option.dart';
+import 'package:prime/core/localization/locale_repository.dart';
 import 'package:prime/features/achievements/domain/catalog/achievement_catalog.dart';
 import 'package:prime/features/achievements/domain/entities/achievement_unlock.dart';
 import 'package:prime/features/achievements/domain/repositories/achievement_unlock_repository.dart';
@@ -265,6 +267,19 @@ class FakeOnboardingRepository implements OnboardingRepository {
 
   @override
   void reset() => _completed = false;
+}
+
+class FakeLocaleRepository implements LocaleRepository {
+  FakeLocaleRepository({AppLocaleOption option = AppLocaleOption.system})
+    : _option = option;
+
+  AppLocaleOption _option;
+
+  @override
+  AppLocaleOption getOption() => _option;
+
+  @override
+  void setOption(AppLocaleOption option) => _option = option;
 }
 
 class FakeRecommendationProfileRepository

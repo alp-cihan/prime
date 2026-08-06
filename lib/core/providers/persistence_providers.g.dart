@@ -373,3 +373,45 @@ final class AppPreferencesHiveBoxProvider
 
 String _$appPreferencesHiveBoxHash() =>
     r'38e289172650f90d53ce4fa550671d553534b68f';
+
+@ProviderFor(localePreferenceHiveBox)
+final localePreferenceHiveBoxProvider = LocalePreferenceHiveBoxProvider._();
+
+final class LocalePreferenceHiveBoxProvider
+    extends $FunctionalProvider<Box<String>, Box<String>, Box<String>>
+    with $Provider<Box<String>> {
+  LocalePreferenceHiveBoxProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localePreferenceHiveBoxProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localePreferenceHiveBoxHash();
+
+  @$internal
+  @override
+  $ProviderElement<Box<String>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Box<String> create(Ref ref) {
+    return localePreferenceHiveBox(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Box<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Box<String>>(value),
+    );
+  }
+}
+
+String _$localePreferenceHiveBoxHash() =>
+    r'194ab3c97efda5932b9381da058f1fc033cde7f9';

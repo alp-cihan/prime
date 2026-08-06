@@ -15,6 +15,10 @@ abstract final class HiveBoxNames {
   /// boolean, so this deliberately doesn't get a `HiveTypeIds` entry.
   static const String appPreferences = 'app_preferences';
 
+  /// Untyped `Box<String>` holding the Phase 17.3 language preference —
+  /// same "too small for a `@HiveType` model" reasoning as [appPreferences].
+  static const String localePreference = 'locale_preference';
+
   /// Every box name Prime owns — the single source of truth for "clear all
   /// local data" (Settings), so that operation can never miss a box or
   /// accidentally touch storage outside the app's own boxes.
@@ -26,5 +30,6 @@ abstract final class HiveBoxNames {
     chainProgress,
     recommendationProfile,
     appPreferences,
+    localePreference,
   ];
 }

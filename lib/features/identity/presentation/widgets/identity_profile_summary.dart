@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/identity_snapshot.dart';
 
 /// Profile summary section — current level, lifetime XP, and progress
@@ -14,6 +15,7 @@ class IdentityProfileSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -28,7 +30,7 @@ class IdentityProfileSummary extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Level ${snapshot.currentLevel}',
+                l10n.playerLevelLabel(snapshot.currentLevel),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineSmall,
@@ -63,7 +65,10 @@ class IdentityProfileSummary extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '${snapshot.xpIntoCurrentLevel} / ${snapshot.xpNeededForNextLevel} XP to next level',
+            l10n.playerXpToNextLevel(
+              snapshot.xpIntoCurrentLevel,
+              snapshot.xpNeededForNextLevel,
+            ),
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.darkTextSecondary,
             ),

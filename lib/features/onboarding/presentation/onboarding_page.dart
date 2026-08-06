@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/design_system/design_system.dart';
 import '../../../core/domain/failure.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/catalog/starter_quest_template.dart';
 import 'providers/onboarding_completion_controller.dart';
 import 'widgets/onboarding_slide.dart';
@@ -32,47 +33,33 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final _selectedTemplateIds = <String>{};
   int _page = 0;
 
-  static const _slides = [
+  List<OnboardingSlideContent> _slides(AppLocalizations l10n) => [
     OnboardingSlideContent(
       icon: Icons.auto_awesome_outlined,
-      title: 'Welcome to Prime',
-      body:
-          'Prime turns your real habits into visible progress — no fantasy, '
-          'no clutter, just your own effort tracked honestly.',
+      title: l10n.onboardingSlide1Title,
+      body: l10n.onboardingSlide1Body,
     ),
     OnboardingSlideContent(
       icon: Icons.checklist_outlined,
-      title: 'Quests are the things you do',
-      body:
-          'A daily habit, a one-off task, a bigger goal — each one is a '
-          'Quest. Completing it makes progress.',
+      title: l10n.onboardingSlide2Title,
+      body: l10n.onboardingSlide2Body,
     ),
     OnboardingSlideContent(
       icon: Icons.bolt_outlined,
-      title: 'Progress earns XP',
-      body:
-          'Completing a quest earns XP toward the attribute it is about — '
-          'Health, Discipline, Knowledge, and more.',
+      title: l10n.onboardingSlide3Title,
+      body: l10n.onboardingSlide3Body,
     ),
     OnboardingSlideContent(
       icon: Icons.trending_up,
-      title: 'Attributes build your level',
-      body:
-          'XP adds up into a Level that only ever goes up — a simple, '
-          'honest record of consistency over time.',
+      title: l10n.onboardingSlide4Title,
+      body: l10n.onboardingSlide4Body,
     ),
     OnboardingSlideContent(
       icon: Icons.person_outline,
-      title: 'Find your story in You',
-      body:
-          'Achievements, Quest Chains, and your Identity Profile all live in '
-          'the You tab — derived automatically from what you do. Nothing to '
-          'set up.',
+      title: l10n.onboardingSlide5Title,
+      body: l10n.onboardingSlide5Body,
     ),
   ];
-
-  /// The final page count: every info slide, plus one starter-template step.
-  int get _pageCount => _slides.length + 1;
 
   @override
   void dispose() {
@@ -96,7 +83,10 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     });
 
     final controllerState = ref.watch(onboardingCompletionControllerProvider);
-    final isLastPage = _page == _pageCount - 1;
+    final l10n = AppLocalizations.of(context)!;
+    final slides = _slides(l10n);
+    final pageCount = slides.length + 1;
+    final isLastPage = _page == pageCount - 1;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -112,7 +102,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 ),
                 child: TextButton(
                   onPressed: controllerState.isLoading ? null : _skip,
-                  child: const Text('Skip'),
+                  child: Text(l10n.skip),
                 ),
               ),
             ),
@@ -121,7 +111,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                 controller: _pageController,
                 onPageChanged: (page) => setState(() => _page = page),
                 children: [
-                  for (final slide in _slides) OnboardingSlide(content: slide),
+                  for (final slide in slides) OnboardingSlide(content: slide),
                   _StarterTemplatesStep(
                     selectedIds: _selectedTemplateIds,
                     onToggle: (id) => setState(() {
@@ -144,7 +134,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      for (var i = 0; i < _pageCount; i++)
+                      for (var i = 0; i < pageCount; i++)
                         Container(
                           width: 8,
                           height: 8,
@@ -169,7 +159,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                             onPressed: controllerState.isLoading
                                 ? null
                                 : _goBack,
-                            child: const Text('Back'),
+                            child: Text(l10n.back),
                           ),
                         ),
                       if (_page > 0) const SizedBox(width: AppSpacing.md),
@@ -194,9 +184,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                               : Text(
                                   isLastPage
                                       ? (_selectedTemplateIds.isEmpty
-                                            ? 'Get Started'
-                                            : 'Add Selected & Get Started')
-                                      : 'Next',
+                                            ? l10n.getStarted
+                                            : l10n.addSelectedGetStarted)
+                                      : l10n.next,
                                 ),
                         ),
                       ),
@@ -249,6 +239,7 @@ class _StarterTemplatesStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -256,11 +247,10 @@ class _StarterTemplatesStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: AppSpacing.lg),
-          Text('Want a head start?', style: theme.textTheme.headlineSmall),
+          Text(l10n.wantHeadStart, style: theme.textTheme.headlineSmall),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Pick any quests you want to start with — entirely optional. '
-            "You can always add your own instead, or later.",
+            l10n.pickQuestsOptional,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
@@ -279,7 +269,7 @@ class _StarterTemplatesStep extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => context.push(AppRoutes.suggestions),
               icon: const Icon(Icons.auto_awesome_outlined, size: 18),
-              label: const Text('Browse more suggestions'),
+              label: Text(l10n.browseMoreSuggestions),
             ),
           ),
         ],
@@ -297,7 +287,7 @@ class _OnboardingError extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = failure is Failure
         ? (failure as Failure).message
-        : 'Something went wrong. Please try again.';
+        : AppLocalizations.of(context)!.somethingWentWrong;
 
     return Container(
       width: double.infinity,

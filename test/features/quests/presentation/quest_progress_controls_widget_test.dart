@@ -10,6 +10,7 @@ import 'package:prime/features/quests/presentation/quest_detail_page.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 import '../../../support/widget_test_harness.dart';
 
 final _today = DateTime.utc(2026, 1, 10);
@@ -56,7 +57,11 @@ Widget _harness(List<Override> overrides) {
   );
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+    ),
   );
 }
 

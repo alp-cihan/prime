@@ -6,6 +6,7 @@ import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
 import '../../../../core/domain/failure.dart';
 import '../../../../core/router/app_routes.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../application/models/create_quest_command.dart';
 import '../../application/models/update_quest_command.dart';
 import '../../domain/entities/quest.dart';
@@ -108,24 +109,23 @@ class _QuestFormState extends ConsumerState<QuestForm> {
   /// which calls `context.pop()`/`context.go()` directly and so bypasses
   /// `Navigator.maybePop()` (the only path `PopScope.canPop` gates).
   Future<bool> _confirmDiscard(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text(
-          "You have unsaved changes. If you leave now, they won't be saved.",
-        ),
+        title: Text(l10n.discardChangesTitle),
+        content: Text(l10n.discardChangesBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Keep Editing'),
+            child: Text(l10n.keepEditing),
           ),
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(dialogContext).colorScheme.error,
             ),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Discard'),
+            child: Text(l10n.discard),
           ),
         ],
       ),
@@ -205,6 +205,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
     });
 
     final controllerState = ref.watch(questFormControllerProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return PopScope<Object?>(
       canPop: !_isDirty,
@@ -224,7 +225,7 @@ class _QuestFormState extends ConsumerState<QuestForm> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: l10n.titleLabel),
                 maxLength: 100,
                 // Rebuilds on every keystroke so `_isDirty` (and therefore
                 // the unsaved-changes `PopScope` below) stays current — a
@@ -233,10 +234,10 @@ class _QuestFormState extends ConsumerState<QuestForm> {
                 onChanged: (_) => setState(() {}),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Title is required';
+                    return l10n.titleRequiredError;
                   }
                   if (value.trim().length > 100) {
-                    return 'Title must be 100 characters or fewer';
+                    return l10n.titleTooLongError;
                   }
                   return null;
                 },
@@ -244,13 +245,13 @@ class _QuestFormState extends ConsumerState<QuestForm> {
               const SizedBox(height: AppSpacing.sm),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: l10n.descriptionLabel),
                 maxLength: 500,
                 maxLines: 3,
                 onChanged: (_) => setState(() {}),
                 validator: (value) {
                   if ((value ?? '').trim().length > 500) {
-                    return 'Description must be 500 characters or fewer';
+                    return l10n.descriptionTooLongError;
                   }
                   return null;
                 },
@@ -258,12 +259,16 @@ class _QuestFormState extends ConsumerState<QuestForm> {
               const SizedBox(height: AppSpacing.sm),
               DropdownButtonFormField<QuestType>(
                 initialValue: _type,
-                decoration: const InputDecoration(labelText: 'Quest type'),
+                isExpanded: true,
+                decoration: InputDecoration(labelText: l10n.questTypeLabel),
                 items: [
                   for (final type in _selectableQuestTypes)
                     DropdownMenuItem(
                       value: type,
-                      child: Text(questTypeDisplayName(type)),
+                      child: Text(
+                        questTypeDisplayName(context, type),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (next) {
@@ -278,12 +283,16 @@ class _QuestFormState extends ConsumerState<QuestForm> {
               const SizedBox(height: AppSpacing.sm),
               DropdownButtonFormField<ProgressType>(
                 initialValue: _progressType,
-                decoration: const InputDecoration(labelText: 'Progress type'),
+                isExpanded: true,
+                decoration: InputDecoration(labelText: l10n.progressTypeLabel),
                 items: [
                   for (final type in ProgressType.values)
                     DropdownMenuItem(
                       value: type,
-                      child: Text(progressTypeDisplayName(type)),
+                      child: Text(
+                        progressTypeDisplayName(context, type),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (next) {
@@ -303,13 +312,15 @@ class _QuestFormState extends ConsumerState<QuestForm> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: 'Target progress'),
+                decoration: InputDecoration(
+                  labelText: l10n.targetProgressLabel,
+                ),
                 onChanged: (_) => setState(() {}),
                 validator: (value) {
                   if (_progressType == ProgressType.binary) return null;
                   final parsed = double.tryParse(value?.trim() ?? '');
                   if (parsed == null || parsed <= 0) {
-                    return 'Enter a positive number';
+                    return l10n.enterPositiveNumberError;
                   }
                   return null;
                 },
@@ -333,12 +344,16 @@ class _QuestFormState extends ConsumerState<QuestForm> {
               const SizedBox(height: AppSpacing.sm),
               DropdownButtonFormField<Repeatability>(
                 initialValue: _repeatability,
-                decoration: const InputDecoration(labelText: 'Repeats'),
+                isExpanded: true,
+                decoration: InputDecoration(labelText: l10n.repeatsLabel),
                 items: [
                   for (final option in _repeatabilityOptions)
                     DropdownMenuItem(
                       value: option,
-                      child: Text(repeatabilityDisplayName(option)),
+                      child: Text(
+                        repeatabilityDisplayName(context, option),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (next) {
@@ -370,7 +385,11 @@ class _QuestFormState extends ConsumerState<QuestForm> {
                             color: Colors.white,
                           ),
                         )
-                      : Text(_isEditMode ? 'Save Changes' : 'Create Quest'),
+                      : Text(
+                          _isEditMode
+                              ? l10n.saveChanges
+                              : l10n.createQuestLabel,
+                        ),
                 ),
               ),
             ],
@@ -432,7 +451,7 @@ class _FormError extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = failure is Failure
         ? (failure as Failure).message
-        : 'Something went wrong. Please try again.';
+        : AppLocalizations.of(context)!.somethingWentWrong;
 
     return Container(
       width: double.infinity,

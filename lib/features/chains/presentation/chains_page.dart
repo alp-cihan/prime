@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import 'models/chain_with_progress.dart';
 import 'providers/chain_query_providers.dart';
 import 'widgets/chain_card.dart';
@@ -20,7 +21,7 @@ class ChainsPage extends ConsumerWidget {
     final completedAsync = ref.watch(completedChainsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Chains')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.chainsTitle)),
       body: _buildBody(context, ref, activeAsync, completedAsync),
     );
   }
@@ -49,14 +50,18 @@ class ChainsPage extends ConsumerWidget {
 
     final active = activeAsync.value ?? const <ChainWithProgress>[];
     final completed = completedAsync.value ?? const <ChainWithProgress>[];
+    final l10n = AppLocalizations.of(context)!;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        Text('Active Chains', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.activeChainsHeader,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         if (active.isEmpty)
-          const _SectionNote('No active chains yet.')
+          _SectionNote(l10n.noActiveChains)
         else
           for (final entry in active) ...[
             ChainCardRoute(entry: entry),
@@ -64,12 +69,12 @@ class ChainsPage extends ConsumerWidget {
           ],
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Completed Chains',
+          l10n.completedChainsHeader,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.sm),
         if (completed.isEmpty)
-          const _SectionNote('No chains completed yet.')
+          _SectionNote(l10n.noCompletedChains)
         else
           for (final entry in completed) ...[
             ChainCardRoute(entry: entry),
@@ -122,6 +127,7 @@ class _ChainsError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint('Chains failed to load: $error');
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -130,19 +136,19 @@ class _ChainsError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your chains.",
+              l10n.couldntLoadChains,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading chains. Please try again.',
+              l10n.chainsLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/design_system.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/entities/quest.dart';
 import 'providers/quest_query_providers.dart';
 import 'providers/quest_repository_providers.dart';
@@ -15,19 +16,20 @@ class QuestsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(watchAllQuestsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return PrimePageScaffold(
-      title: 'Quests',
+      title: l10n.questsTitle,
       actions: [
         IconButton(
           onPressed: () => context.push(AppRoutes.suggestions),
           icon: const Icon(Icons.auto_awesome_outlined),
-          tooltip: 'Suggestions',
+          tooltip: l10n.suggestionsTooltip,
         ),
       ],
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go(AppRoutes.questNew),
-        tooltip: 'Create Quest',
+        tooltip: l10n.createQuestTooltip,
         child: const Icon(Icons.add),
       ),
       body: questsAsync.when(
@@ -78,6 +80,7 @@ class _EmptyQuests extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -85,7 +88,7 @@ class _EmptyQuests extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'No quests yet. Quests you create will show up here.',
+              l10n.noQuestsYet,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.darkTextSecondary,
@@ -95,13 +98,13 @@ class _EmptyQuests extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => context.go(AppRoutes.questNew),
               icon: const Icon(Icons.add),
-              label: const Text('Create Quest'),
+              label: Text(l10n.createQuestLabel),
             ),
             const SizedBox(height: AppSpacing.sm),
             OutlinedButton.icon(
               onPressed: () => context.push(AppRoutes.suggestions),
               icon: const Icon(Icons.auto_awesome_outlined),
-              label: const Text('Browse Suggestions'),
+              label: Text(l10n.browseSuggestions),
             ),
           ],
         ),
@@ -123,6 +126,7 @@ class _QuestsError extends ConsumerWidget {
     // and keep the real error out of the widget tree entirely; it's still
     // visible via debugPrint for debugging.
     debugPrint('Quest list failed to load: $error');
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -131,12 +135,12 @@ class _QuestsError extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load quests.",
+              l10n.couldntLoadQuests,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading your quests. Please try again.',
+              l10n.questsLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
@@ -145,7 +149,7 @@ class _QuestsError extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             OutlinedButton(
               onPressed: () => ref.invalidate(watchAllQuestsProvider),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// One editable attribute-weight row. Owns the [TextEditingController] for
 /// its weight field so [AttributeAllocationEditor] stays presentational
@@ -47,6 +48,7 @@ class AttributeAllocationEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final usedTypes = rows.map((r) => r.type).toSet();
     final total = rows.fold<int>(
       0,
@@ -57,7 +59,7 @@ class AttributeAllocationEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Attribute allocation', style: theme.textTheme.labelLarge),
+        Text(l10n.attributeAllocationLabel, style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
         for (var i = 0; i < rows.length; i++) ...[
           _AttributeRowEditor(
@@ -72,15 +74,25 @@ class AttributeAllocationEditor extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton.icon(
-              onPressed: canAddMore ? onAdd : null,
-              icon: const Icon(Icons.add),
-              label: const Text('Add attribute'),
+            Flexible(
+              child: TextButton.icon(
+                onPressed: canAddMore ? onAdd : null,
+                icon: const Icon(Icons.add),
+                label: Text(
+                  l10n.addAttributeButton,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-            Text(
-              'Total: $total XP',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.accent,
+            const SizedBox(width: AppSpacing.sm),
+            Flexible(
+              child: Text(
+                l10n.totalXpLabel(total),
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: AppColors.accent,
+                ),
               ),
             ),
           ],
@@ -107,6 +119,7 @@ class _AttributeRowEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,14 +127,16 @@ class _AttributeRowEditor extends StatelessWidget {
           flex: 3,
           child: DropdownButtonFormField<AttributeType>(
             initialValue: row.type,
-            decoration: const InputDecoration(labelText: 'Attribute'),
+            isExpanded: true,
+            decoration: InputDecoration(labelText: l10n.attributeLabel),
             items: [
               for (final type in AttributeType.values)
                 DropdownMenuItem(
                   value: type,
                   enabled: !usedByOtherRows.contains(type),
                   child: Text(
-                    attributeDisplayName(type),
+                    attributeDisplayName(context, type),
+                    overflow: TextOverflow.ellipsis,
                     style: usedByOtherRows.contains(type)
                         ? TextStyle(color: AppColors.darkTextSecondary)
                         : null,
@@ -139,12 +154,12 @@ class _AttributeRowEditor extends StatelessWidget {
           child: TextFormField(
             controller: row.weightController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'XP weight'),
+            decoration: InputDecoration(labelText: l10n.xpWeightLabel),
             onChanged: onWeightChanged,
             validator: (value) {
               final parsed = int.tryParse(value?.trim() ?? '');
-              if (parsed == null) return 'Enter a whole number';
-              if (parsed < 0) return 'Must not be negative';
+              if (parsed == null) return l10n.enterWholeNumberError;
+              if (parsed < 0) return l10n.mustNotBeNegativeError;
               return null;
             },
           ),
@@ -153,7 +168,7 @@ class _AttributeRowEditor extends StatelessWidget {
           IconButton(
             onPressed: onRemove,
             icon: const Icon(Icons.remove_circle_outline),
-            tooltip: 'Remove attribute',
+            tooltip: l10n.removeAttributeTooltip,
           ),
       ],
     );

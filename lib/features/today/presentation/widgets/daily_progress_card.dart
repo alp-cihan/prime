@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/today_dashboard_providers.dart';
 
 /// Today dashboard §13.2 "Daily momentum" — a compact, energetic radial
@@ -53,6 +54,7 @@ class _DailyProgressContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return GradientSurfaceCard(
       child: Row(
@@ -62,7 +64,7 @@ class _DailyProgressContent extends StatelessWidget {
             size: 56,
             strokeWidth: 5,
             child: Text(
-              '${(summary.completionRatio * 100).round()}%',
+              l10n.percentValue((summary.completionRatio * 100).round()),
               style: theme.textTheme.labelSmall,
             ),
           ),
@@ -71,12 +73,18 @@ class _DailyProgressContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Daily momentum', style: theme.textTheme.titleMedium),
+                Text(
+                  l10n.dailyMomentumTitle,
+                  style: theme.textTheme.titleMedium,
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   summary.totalActiveQuests == 0
-                      ? 'No quests yet'
-                      : '${summary.completedToday} of ${summary.totalActiveQuests} quests completed',
+                      ? l10n.dailyMomentumNoQuests
+                      : l10n.dailyMomentumProgress(
+                          summary.completedToday,
+                          summary.totalActiveQuests,
+                        ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -85,7 +93,7 @@ class _DailyProgressContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${formatXp(todayXp)} XP today',
+                  l10n.dailyMomentumXpToday(formatXp(todayXp)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelLarge?.copyWith(
@@ -144,13 +152,16 @@ class _DailyProgressError extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              "Couldn't load today's progress.",
+              AppLocalizations.of(context)!.couldntLoadTodayProgress,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context)!.retry),
+          ),
         ],
       ),
     );

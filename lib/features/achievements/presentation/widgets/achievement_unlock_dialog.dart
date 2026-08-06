@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../achievement_icon.dart';
+import '../achievement_localization.dart';
 import '../providers/achievement_evaluation_controller.dart';
 
 /// A simple, single-achievement unlock celebration — deliberately as
@@ -23,6 +25,7 @@ class AchievementUnlockDialog extends ConsumerWidget {
       ),
     );
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (achievement == null) {
       // The queue was cleared from elsewhere while this dialog was still
@@ -48,7 +51,7 @@ class AchievementUnlockDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'ACHIEVEMENT UNLOCKED',
+              l10n.achievementUnlockedEyebrow,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: AppColors.accent,
                 letterSpacing: 1.5,
@@ -62,13 +65,13 @@ class AchievementUnlockDialog extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              achievement.title,
+              achievementTitle(context, achievement.id),
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              achievement.description,
+              achievementDescription(context, achievement.id),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
@@ -77,7 +80,7 @@ class AchievementUnlockDialog extends ConsumerWidget {
             if (achievement.rewardXp > 0) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '+${achievement.rewardXp} XP',
+                l10n.rewardXpLabel(achievement.rewardXp),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.accent,
                   fontWeight: FontWeight.w600,
@@ -96,7 +99,7 @@ class AchievementUnlockDialog extends ConsumerWidget {
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Nice'),
+                child: Text(l10n.nice),
               ),
             ),
           ],

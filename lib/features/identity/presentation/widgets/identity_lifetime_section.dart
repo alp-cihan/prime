@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../models/lifetime_statistics.dart';
 
 /// Lifetime statistics section — quests completed, chains completed,
@@ -15,24 +16,25 @@ class IdentityLifetimeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lifetime', style: theme.textTheme.titleMedium),
+        Text(l10n.lifetimeHeader, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
             Expanded(
               child: _StatTile(
-                label: 'Quests completed',
+                label: l10n.questsCompletedLabel,
                 value: '${statistics.completedQuests}',
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _StatTile(
-                label: 'Chains completed',
+                label: l10n.chainsCompletedLabel,
                 value: '${statistics.completedChains}',
               ),
             ),
@@ -43,14 +45,14 @@ class IdentityLifetimeSection extends StatelessWidget {
           children: [
             Expanded(
               child: _StatTile(
-                label: 'Achievements unlocked',
+                label: l10n.achievementsUnlockedLabel,
                 value: '${statistics.unlockedAchievements}',
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: _StatTile(
-                label: 'Total XP earned',
+                label: l10n.totalXpEarnedLabel,
                 value: '${statistics.totalXpEarned}',
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:prime/core/localization/locale_controller.dart';
 import 'package:prime/features/achievements/presentation/providers/achievement_repository_providers.dart';
 import 'package:prime/features/chains/presentation/providers/chain_repository_providers.dart';
 import 'package:prime/features/onboarding/presentation/providers/onboarding_providers.dart';
@@ -31,6 +32,7 @@ List<Override> fakeProviderOverrides({
   FakeAchievementUnlockRepository? achievementUnlockRepository,
   FakeChainProgressRepository? chainProgressRepository,
   FakeRecommendationProfileRepository? recommendationProfileRepository,
+  FakeLocaleRepository? localeRepository,
   bool onboardingCompleted = true,
 }) {
   return [
@@ -48,6 +50,9 @@ List<Override> fakeProviderOverrides({
     ),
     onboardingRepositoryProvider.overrideWithValue(
       FakeOnboardingRepository(completed: onboardingCompleted),
+    ),
+    localeRepositoryProvider.overrideWithValue(
+      localeRepository ?? FakeLocaleRepository(),
     ),
     clockProvider.overrideWithValue(FakeClock(today)),
   ];

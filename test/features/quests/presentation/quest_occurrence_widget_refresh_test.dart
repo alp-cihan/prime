@@ -10,6 +10,7 @@ import 'package:prime/features/quests/presentation/quest_detail_page.dart';
 import 'package:prime/features/xp_ledger/presentation/providers/xp_ledger_providers.dart';
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 
 final _day1 = DateTime.utc(2026, 1, 10);
 final _day2 = _day1.add(const Duration(days: 1));
@@ -53,7 +54,11 @@ Widget _harness(ProviderContainer container) {
   );
   return UncontrolledProviderScope(
     container: container,
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+    ),
   );
 }
 

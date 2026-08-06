@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/design_system/design_system.dart';
 import '../../../core/domain/attribute_type.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../l10n/app_localizations.dart';
 import '../domain/services/level_curve.dart';
 import 'providers/xp_ledger_providers.dart';
 import 'widgets/attribute_xp_tile.dart';
@@ -24,7 +25,7 @@ class XpSummaryPage extends ConsumerWidget {
     final byAttributeAsync = ref.watch(xpByAttributeProvider);
 
     return PrimePageScaffold(
-      title: 'You',
+      title: AppLocalizations.of(context)!.youTitle,
       body: _buildBody(context, ref, totalXpAsync, byAttributeAsync),
     );
   }
@@ -56,6 +57,7 @@ class XpSummaryPage extends ConsumerWidget {
     final byAttribute = byAttributeAsync.value ?? const <AttributeType, int>{};
     const levelCurve = LevelCurve();
     final levelProgress = levelCurve.levelForTotalXp(totalXp, base: 100);
+    final l10n = AppLocalizations.of(context)!;
 
     return ListView(
       padding: EdgeInsets.zero,
@@ -64,29 +66,32 @@ class XpSummaryPage extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
         _NavEntryPoint(
           icon: Icons.emoji_events_outlined,
-          label: 'Achievements',
+          label: l10n.achievementsTitle,
           onTap: () => context.go(AppRoutes.achievements),
         ),
         const SizedBox(height: AppSpacing.sm),
         _NavEntryPoint(
           icon: Icons.auto_stories_outlined,
-          label: 'Chains',
+          label: l10n.chainsTitle,
           onTap: () => context.go(AppRoutes.chains),
         ),
         const SizedBox(height: AppSpacing.sm),
         _NavEntryPoint(
           icon: Icons.badge_outlined,
-          label: 'Identity',
+          label: l10n.identityTitle,
           onTap: () => context.go(AppRoutes.identity),
         ),
         const SizedBox(height: AppSpacing.sm),
         _NavEntryPoint(
           icon: Icons.settings_outlined,
-          label: 'Settings',
+          label: l10n.settingsTitle,
           onTap: () => context.go(AppRoutes.settings),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('XP by attribute', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          l10n.xpByAttributeHeader,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         for (final type in AttributeType.values) ...[
           AttributeXpTile(attribute: type, xp: byAttribute[type] ?? 0),
@@ -156,6 +161,7 @@ class _XpSummaryError extends StatelessWidget {
     // rendered directly (a ProviderException's toString() embeds its whole
     // stack trace, which caused a real layout overflow).
     debugPrint('XP summary failed to load: $error');
+    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Padding(
@@ -164,19 +170,19 @@ class _XpSummaryError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load your XP.",
+              l10n.couldntLoadXp,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading your XP. Please try again.',
+              l10n.xpLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),

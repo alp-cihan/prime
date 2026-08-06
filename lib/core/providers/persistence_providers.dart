@@ -46,3 +46,6 @@ Box<RecommendationProfileHiveModel> recommendationProfileHiveBox(Ref ref) =>
 
 @Riverpod(keepAlive: true)
 Box<bool> appPreferencesHiveBox(Ref ref) => bootstrap.appPreferencesBox();
+
+@Riverpod(keepAlive: true)
+Box<String> localePreferenceHiveBox(Ref ref) => bootstrap.localePreferenceBox();

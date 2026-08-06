@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../models/attribute_distribution.dart';
 
 /// Attribute breakdown section — one card per attribute with its share of
@@ -20,7 +21,10 @@ class IdentityAttributeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Attributes', style: theme.textTheme.titleMedium),
+        Text(
+          AppLocalizations.of(context)!.attributesHeader,
+          style: theme.textTheme.titleMedium,
+        ),
         const SizedBox(height: AppSpacing.sm),
         for (final type in AttributeType.values) ...[
           _AttributeCard(
@@ -55,7 +59,10 @@ class _AttributeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final badge = isStrongest ? 'Strongest' : (isWeakest ? 'Weakest' : null);
+    final l10n = AppLocalizations.of(context)!;
+    final badge = isStrongest
+        ? l10n.strongestBadge
+        : (isWeakest ? l10n.weakestBadge : null);
 
     return Container(
       width: double.infinity,
@@ -76,7 +83,7 @@ class _AttributeCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    attributeDisplayName(type),
+                    attributeDisplayName(context, type),
                     style: theme.textTheme.titleSmall,
                   ),
                   if (badge != null) ...[
@@ -103,7 +110,7 @@ class _AttributeCard extends StatelessWidget {
                 ],
               ),
               Text(
-                '${(percent * 100).round()}%',
+                l10n.percentValue((percent * 100).round()),
                 style: theme.textTheme.labelLarge,
               ),
             ],

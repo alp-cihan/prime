@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
 import '../../../../core/domain/attribute_type.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../xp_ledger/presentation/widgets/attribute_xp_tile.dart';
 import '../providers/today_dashboard_providers.dart';
 
@@ -19,6 +20,7 @@ class TodayXpSummary extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final byAttributeAsync = ref.watch(todayXpByAttributeProvider);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     if (byAttributeAsync.isLoading) {
       return const _GrowthTodaySkeleton();
@@ -40,11 +42,11 @@ class TodayXpSummary extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Growth today', style: theme.textTheme.titleMedium),
+          Text(l10n.growthTodayTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           if (shown.isEmpty)
             Text(
-              'No XP earned today',
+              l10n.growthTodayEmpty,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
@@ -111,13 +113,16 @@ class _TodayXpSummaryError extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              "Couldn't load today's XP.",
+              AppLocalizations.of(context)!.couldntLoadTodayXp,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(AppLocalizations.of(context)!.retry),
+          ),
         ],
       ),
     );

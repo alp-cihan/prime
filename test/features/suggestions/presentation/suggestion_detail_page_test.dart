@@ -7,6 +7,7 @@ import 'package:prime/features/suggestions/presentation/suggestion_detail_page.d
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 
 import '../../../support/fake_repositories.dart';
+import '../../../support/test_localizations.dart';
 import '../../../support/widget_test_harness.dart';
 
 Widget _harness(
@@ -35,7 +36,11 @@ Widget _harness(
 
   return ProviderScope(
     overrides: overrides,
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      localizationsDelegates: testLocalizationsDelegates,
+      supportedLocales: testSupportedLocales,
+    ),
   );
 }
 

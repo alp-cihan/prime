@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/design_system/design_system.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Main Story Quests / Quest Chains land here per docs/architecture.md §2,
 /// but Quest Chains shipped in Phase 11 under the You tab instead (alongside
@@ -12,11 +13,12 @@ class StoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const PrimePageScaffold(
-      title: 'Story',
+    final l10n = AppLocalizations.of(context)!;
+    return PrimePageScaffold(
+      title: l10n.navStory,
       body: ComingSoonView(
         icon: Icons.auto_stories_outlined,
-        message: 'Your story is still being written.\nCheck back soon.',
+        message: l10n.storyComingSoon,
       ),
     );
   }

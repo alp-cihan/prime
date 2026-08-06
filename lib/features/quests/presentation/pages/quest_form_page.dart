@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/design_system/design_system.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/quest_query_providers.dart';
 import '../widgets/quest_form.dart';
 
@@ -19,10 +20,11 @@ class QuestFormPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final id = questId;
     if (id == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('New Quest')),
+        appBar: AppBar(title: Text(l10n.newQuestTitle)),
         body: const QuestForm(),
       );
     }
@@ -30,7 +32,7 @@ class QuestFormPage extends ConsumerWidget {
     final questAsync = ref.watch(questByIdProvider(id));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Quest')),
+      appBar: AppBar(title: Text(l10n.editQuestTitle)),
       body: questAsync.when(
         data: (quest) {
           if (quest == null) return const _QuestNotFound();
@@ -66,7 +68,7 @@ class _QuestNotFound extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              "This quest doesn't exist or was removed.",
+              AppLocalizations.of(context)!.questNotFound,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -83,6 +85,7 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -90,19 +93,19 @@ class _LoadError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "Couldn't load this quest.",
+              l10n.couldntLoadQuest,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Something went wrong loading this quest. Please try again.',
+              l10n.questLoadErrorBody,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.darkTextSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+            OutlinedButton(onPressed: onRetry, child: Text(l10n.retry)),
           ],
         ),
       ),
