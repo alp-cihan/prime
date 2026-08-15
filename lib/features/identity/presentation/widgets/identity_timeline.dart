@@ -52,6 +52,8 @@ class _MilestoneTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final subtitle = _supportingContext(context, milestone);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -60,8 +62,17 @@ class _MilestoneTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_iconFor(milestone), color: AppColors.accent),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(_iconFor(milestone), color: AppColors.accent, size: 18),
+          ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -71,6 +82,18 @@ class _MilestoneTile extends StatelessWidget {
                   _localizedTitle(context, milestone),
                   style: theme.textTheme.titleSmall,
                 ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.darkTextSecondary,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 2),
                 Text(
                   MaterialLocalizations.of(
                     context,
@@ -85,6 +108,20 @@ class _MilestoneTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Concise supporting context, when the milestone's own data already
+  /// carries it — currently only achievement unlocks, via the achievement's
+  /// existing localized description. `null` for milestone types with
+  /// nothing further to add, per "do not invent milestones."
+  String? _supportingContext(
+    BuildContext context,
+    IdentityMilestone milestone,
+  ) {
+    if (milestone.type != IdentityMilestoneType.achievementUnlocked) {
+      return null;
+    }
+    return achievementDescription(context, milestone.refId!);
   }
 
   /// Built from [milestone.level]/[milestone.refId] (not [milestone.title],

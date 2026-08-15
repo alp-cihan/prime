@@ -9,8 +9,9 @@ import 'models/attribute_distribution.dart';
 import 'models/lifetime_statistics.dart';
 import 'providers/identity_query_providers.dart';
 import 'widgets/identity_attribute_section.dart';
-import 'widgets/identity_lifetime_section.dart';
-import 'widgets/identity_profile_summary.dart';
+import 'widgets/identity_balance_section.dart';
+import 'widgets/identity_hero.dart';
+import 'widgets/identity_journey_section.dart';
 import 'widgets/identity_timeline.dart';
 
 /// Identity Profile — reached from the You tab. Every section is derived
@@ -78,11 +79,13 @@ class IdentityPage extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: [
-        IdentityProfileSummary(snapshot: snapshotAsync.value!),
+        IdentityHero(snapshot: snapshotAsync.value!),
         const SizedBox(height: AppSpacing.lg),
         IdentityAttributeSection(distribution: attributesAsync.value!),
         const SizedBox(height: AppSpacing.lg),
-        IdentityLifetimeSection(statistics: statisticsAsync.value!),
+        IdentityBalanceSection(distribution: attributesAsync.value!),
+        const SizedBox(height: AppSpacing.lg),
+        IdentityJourneySection(statistics: statisticsAsync.value!),
         const SizedBox(height: AppSpacing.lg),
         IdentityTimeline(milestones: milestonesAsync.value!),
       ],

@@ -1058,6 +1058,24 @@ abstract class AppLocalizations {
   /// **'Couldn\'t load your identity profile.'**
   String get couldntLoadIdentity;
 
+  /// No description provided for @levelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get levelLabel;
+
+  /// No description provided for @identityCurrentlyStrongest.
+  ///
+  /// In en, this message translates to:
+  /// **'Currently strongest: {attribute}'**
+  String identityCurrentlyStrongest(String attribute);
+
+  /// No description provided for @identityNoActivityYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your first quest to begin your story.'**
+  String get identityNoActivityYet;
+
   /// No description provided for @attributesHeader.
   ///
   /// In en, this message translates to:
@@ -1082,11 +1100,29 @@ abstract class AppLocalizations {
   /// **'{percent}%'**
   String percentValue(int percent);
 
+  /// No description provided for @buildBalanceHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get buildBalanceHeader;
+
+  /// No description provided for @buildBalanceEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete a quest to see your balance take shape.'**
+  String get buildBalanceEmptyHint;
+
   /// No description provided for @lifetimeHeader.
   ///
   /// In en, this message translates to:
   /// **'Lifetime'**
   String get lifetimeHeader;
+
+  /// No description provided for @journeyHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Journey'**
+  String get journeyHeader;
 
   /// No description provided for @questsCompletedLabel.
   ///
@@ -1111,6 +1147,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total XP earned'**
   String get totalXpEarnedLabel;
+
+  /// No description provided for @streakDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Day streak'**
+  String get streakDaysLabel;
 
   /// No description provided for @recentMilestonesHeader.
   ///

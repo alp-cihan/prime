@@ -547,6 +547,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get couldntLoadIdentity => 'Kimlik profiliniz yüklenemedi.';
 
   @override
+  String get levelLabel => 'Seviye';
+
+  @override
+  String identityCurrentlyStrongest(String attribute) {
+    return 'Şu anda en güçlü: $attribute';
+  }
+
+  @override
+  String get identityNoActivityYet =>
+      'Hikayene başlamak için ilk görevini tamamla.';
+
+  @override
   String get attributesHeader => 'Nitelikler';
 
   @override
@@ -561,7 +573,17 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get buildBalanceHeader => 'Denge';
+
+  @override
+  String get buildBalanceEmptyHint =>
+      'Dengenin şekillenmesini görmek için bir görev tamamla.';
+
+  @override
   String get lifetimeHeader => 'Kalıcı';
+
+  @override
+  String get journeyHeader => 'Yolculuğun';
 
   @override
   String get questsCompletedLabel => 'Tamamlanan görevler';
@@ -574,6 +596,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get totalXpEarnedLabel => 'Kazanılan toplam XP';
+
+  @override
+  String get streakDaysLabel => 'Gün serisi';
 
   @override
   String get recentMilestonesHeader => 'Son Kilometre Taşları';

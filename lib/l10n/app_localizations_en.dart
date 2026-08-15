@@ -542,6 +542,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldntLoadIdentity => 'Couldn\'t load your identity profile.';
 
   @override
+  String get levelLabel => 'Level';
+
+  @override
+  String identityCurrentlyStrongest(String attribute) {
+    return 'Currently strongest: $attribute';
+  }
+
+  @override
+  String get identityNoActivityYet =>
+      'Complete your first quest to begin your story.';
+
+  @override
   String get attributesHeader => 'Attributes';
 
   @override
@@ -556,7 +568,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get buildBalanceHeader => 'Balance';
+
+  @override
+  String get buildBalanceEmptyHint =>
+      'Complete a quest to see your balance take shape.';
+
+  @override
   String get lifetimeHeader => 'Lifetime';
+
+  @override
+  String get journeyHeader => 'Your Journey';
 
   @override
   String get questsCompletedLabel => 'Quests completed';
@@ -569,6 +591,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalXpEarnedLabel => 'Total XP earned';
+
+  @override
+  String get streakDaysLabel => 'Day streak';
 
   @override
   String get recentMilestonesHeader => 'Recent Milestones';

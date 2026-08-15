@@ -9,12 +9,14 @@ class LifetimeStatistics {
   final int completedChains;
   final int unlockedAchievements;
   final int totalXpEarned;
+  final int currentStreakDays;
 
   const LifetimeStatistics({
     required this.completedQuests,
     required this.completedChains,
     required this.unlockedAchievements,
     required this.totalXpEarned,
+    required this.currentStreakDays,
   });
 
   factory LifetimeStatistics.fromSnapshot(IdentitySnapshot snapshot) {
@@ -23,6 +25,7 @@ class LifetimeStatistics {
       completedChains: snapshot.completedChains,
       unlockedAchievements: snapshot.unlockedAchievements,
       totalXpEarned: snapshot.lifetimeXp,
+      currentStreakDays: snapshot.currentStreakDays,
     );
   }
 
@@ -32,7 +35,8 @@ class LifetimeStatistics {
       other.completedQuests == completedQuests &&
       other.completedChains == completedChains &&
       other.unlockedAchievements == unlockedAchievements &&
-      other.totalXpEarned == totalXpEarned;
+      other.totalXpEarned == totalXpEarned &&
+      other.currentStreakDays == currentStreakDays;
 
   @override
   int get hashCode => Object.hash(
@@ -40,5 +44,6 @@ class LifetimeStatistics {
     completedChains,
     unlockedAchievements,
     totalXpEarned,
+    currentStreakDays,
   );
 }

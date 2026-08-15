@@ -3,7 +3,7 @@ import 'package:prime/features/identity/domain/entities/identity_snapshot.dart';
 import 'package:prime/features/identity/presentation/models/lifetime_statistics.dart';
 
 void main() {
-  test('fromSnapshot projects the four lifetime counters unchanged', () {
+  test('fromSnapshot projects the five lifetime counters unchanged', () {
     const snapshot = IdentitySnapshot(
       currentLevel: 4,
       lifetimeXp: 500,
@@ -22,6 +22,7 @@ void main() {
     expect(statistics.completedChains, 2);
     expect(statistics.unlockedAchievements, 3);
     expect(statistics.totalXpEarned, 500);
+    expect(statistics.currentStreakDays, 5);
   });
 
   test('equal statistics compare equal', () {
@@ -30,12 +31,14 @@ void main() {
       completedChains: 1,
       unlockedAchievements: 1,
       totalXpEarned: 100,
+      currentStreakDays: 3,
     );
     const b = LifetimeStatistics(
       completedQuests: 1,
       completedChains: 1,
       unlockedAchievements: 1,
       totalXpEarned: 100,
+      currentStreakDays: 3,
     );
     expect(a, b);
     expect(a.hashCode, b.hashCode);

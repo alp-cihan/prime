@@ -84,7 +84,7 @@ void main() {
 
       // 6. Open Identity and see it reflect the same lifetime XP.
       await _goTo(tester, AppRoutes.identity);
-      expect(find.text('Level 1'), findsOneWidget);
+      expect(find.textContaining('70 XP total'), findsOneWidget);
       expect(find.text('Quests completed'), findsOneWidget);
 
       await _goTo(tester, AppRoutes.you);
