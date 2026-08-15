@@ -59,7 +59,11 @@ void main() {
   test(
     'creates a normal, user-owned quest through CreateQuestUseCase',
     () async {
-      final result = await useCase.execute(_suggestion);
+      final result = await useCase.execute(
+        _suggestion,
+        title: _suggestion.title,
+        description: _suggestion.description,
+      );
 
       expect(result, isA<Ok<CreateQuestFromSuggestionOutcome>>());
       final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
@@ -74,7 +78,11 @@ void main() {
   test(
     'Phase 17.2: copies the suggestion visualKey onto the created quest',
     () async {
-      final result = await useCase.execute(_suggestion);
+      final result = await useCase.execute(
+        _suggestion,
+        title: _suggestion.title,
+        description: _suggestion.description,
+      );
 
       final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
       expect(outcome.quest.visualKey, _suggestion.visualKey);
@@ -86,7 +94,11 @@ void main() {
     'every catalog entry carries its own visualKey onto the created quest',
     () async {
       for (final suggestion in questSuggestionCatalog.take(10)) {
-        final result = await useCase.execute(suggestion);
+        final result = await useCase.execute(
+          suggestion,
+          title: suggestion.title,
+          description: suggestion.description,
+        );
         final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
         expect(
           outcome.quest.visualKey,
@@ -98,7 +110,11 @@ void main() {
   );
 
   test('marks the suggestion accepted on the recommendation profile', () async {
-    await useCase.execute(_suggestion);
+    await useCase.execute(
+      _suggestion,
+      title: _suggestion.title,
+      description: _suggestion.description,
+    );
 
     expect((await profileRepository.get()).acceptedSuggestionIds, {
       'test_suggestion',
@@ -108,10 +124,18 @@ void main() {
   test(
     'a repeated tap creates at most one quest (idempotent by title)',
     () async {
-      await useCase.execute(_suggestion);
+      await useCase.execute(
+        _suggestion,
+        title: _suggestion.title,
+        description: _suggestion.description,
+      );
       expect(questRepository.quests.length, 1);
 
-      final second = await useCase.execute(_suggestion);
+      final second = await useCase.execute(
+        _suggestion,
+        title: _suggestion.title,
+        description: _suggestion.description,
+      );
 
       expect(second, isA<Ok<CreateQuestFromSuggestionOutcome>>());
       final outcome = (second as Ok<CreateQuestFromSuggestionOutcome>).value;
@@ -119,6 +143,35 @@ void main() {
       expect(questRepository.quests.length, 1); // still just one
     },
   );
+
+  test('Phase 17.3.1: duplicate prevention works against a resolved, localized '
+      '(Turkish) title, not just the catalog\'s English source', () async {
+    const turkishTitle = 'Odaklanmış bir Pomodoro çalış';
+    const turkishDescription =
+        'Dikkat dağıtmadan 25 dakika, tek bir temiz blok.';
+
+    final first = await useCase.execute(
+      _suggestion,
+      title: turkishTitle,
+      description: turkishDescription,
+    );
+    final firstOutcome = (first as Ok<CreateQuestFromSuggestionOutcome>).value;
+    expect(firstOutcome, isA<SuggestionQuestCreated>());
+    expect(firstOutcome.quest.title, turkishTitle);
+    expect(firstOutcome.quest.description, turkishDescription);
+    expect(questRepository.quests.length, 1);
+
+    final second = await useCase.execute(
+      _suggestion,
+      title: turkishTitle,
+      description: turkishDescription,
+    );
+
+    final secondOutcome =
+        (second as Ok<CreateQuestFromSuggestionOutcome>).value;
+    expect(secondOutcome, isA<SuggestionAlreadyAdded>());
+    expect(questRepository.quests.length, 1); // still just one
+  });
 
   test('a suggestion whose title already exists (e.g. hand-typed by the '
       'user first) is reported as already-added, not duplicated', () async {
@@ -139,7 +192,11 @@ void main() {
       ),
     );
 
-    final result = await useCase.execute(_suggestion);
+    final result = await useCase.execute(
+      _suggestion,
+      title: _suggestion.title,
+      description: _suggestion.description,
+    );
 
     final outcome = (result as Ok<CreateQuestFromSuggestionOutcome>).value;
     expect(outcome, isA<SuggestionAlreadyAdded>());
@@ -154,7 +211,11 @@ void main() {
     'every catalog entry is independently creatable through this use case',
     () async {
       for (final suggestion in questSuggestionCatalog.take(10)) {
-        final result = await useCase.execute(suggestion);
+        final result = await useCase.execute(
+          suggestion,
+          title: suggestion.title,
+          description: suggestion.description,
+        );
         expect(
           result,
           isA<Ok<CreateQuestFromSuggestionOutcome>>(),

@@ -62,7 +62,7 @@ void main() {
 
     await container
         .read(suggestionCreationControllerProvider(target.id).notifier)
-        .create(target);
+        .create(target, title: target.title, description: target.description);
 
     await _waitFor(() {
       final value = container.read(rankedSuggestionsProvider).value;

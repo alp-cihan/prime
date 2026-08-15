@@ -26,12 +26,25 @@ class SuggestionCreationController extends _$SuggestionCreationController {
   FutureOr<CreateQuestFromSuggestionOutcome?> build(String suggestionId) =>
       null;
 
-  Future<void> create(QuestSuggestion suggestion) async {
+  /// [title]/[description] must be whatever the caller currently displays
+  /// for this suggestion (see `suggestion_localization.dart`) — resolved
+  /// here at the presentation/controller boundary, not inside the pure-Dart
+  /// use case, so the persisted quest always matches what the user saw and
+  /// tapped "Add" on, in whichever language that was (Phase 17.3.1 fix).
+  Future<void> create(
+    QuestSuggestion suggestion, {
+    required String title,
+    required String description,
+  }) async {
     if (state.isLoading) return;
 
     state = const AsyncValue.loading();
     final useCase = ref.read(createQuestFromSuggestionUseCaseProvider);
-    final result = await useCase.execute(suggestion);
+    final result = await useCase.execute(
+      suggestion,
+      title: title,
+      description: description,
+    );
 
     switch (result) {
       case Ok(value: final outcome):

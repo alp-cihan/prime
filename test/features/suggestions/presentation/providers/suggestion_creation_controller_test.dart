@@ -34,7 +34,11 @@ void main() {
 
     await container
         .read(suggestionCreationControllerProvider(suggestion.id).notifier)
-        .create(suggestion);
+        .create(
+          suggestion,
+          title: suggestion.title,
+          description: suggestion.description,
+        );
 
     expect(states.any((s) => s.isLoading), isTrue);
     final outcome = container
@@ -56,8 +60,16 @@ void main() {
         suggestionCreationControllerProvider(suggestion.id).notifier,
       );
 
-      final first = notifier.create(suggestion);
-      final second = notifier.create(suggestion); // guarded no-op
+      final first = notifier.create(
+        suggestion,
+        title: suggestion.title,
+        description: suggestion.description,
+      );
+      final second = notifier.create(
+        suggestion,
+        title: suggestion.title,
+        description: suggestion.description,
+      ); // guarded no-op
       await first;
       await second;
 
@@ -76,7 +88,7 @@ void main() {
 
       await container
           .read(suggestionCreationControllerProvider(a.id).notifier)
-          .create(a);
+          .create(a, title: a.title, description: a.description);
 
       // b's controller is untouched by a's creation.
       expect(
@@ -92,7 +104,11 @@ void main() {
     final suggestion = questSuggestionCatalog.first;
     await container
         .read(suggestionCreationControllerProvider(suggestion.id).notifier)
-        .create(suggestion);
+        .create(
+          suggestion,
+          title: suggestion.title,
+          description: suggestion.description,
+        );
 
     container
         .read(suggestionCreationControllerProvider(suggestion.id).notifier)

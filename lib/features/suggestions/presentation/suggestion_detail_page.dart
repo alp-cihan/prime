@@ -137,7 +137,17 @@ class SuggestionDetailPage extends ConsumerWidget {
                                     suggestion.id,
                                   ).notifier,
                                 )
-                                .create(suggestion),
+                                .create(
+                                  suggestion,
+                                  title: suggestionTitle(
+                                    context,
+                                    suggestion.id,
+                                  ),
+                                  description: suggestionDescription(
+                                    context,
+                                    suggestion.id,
+                                  ),
+                                ),
                       icon: creationState.isLoading
                           ? const SizedBox(
                               width: 18,
