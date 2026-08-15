@@ -240,6 +240,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get couldntCompleteQuest => 'Bu görev tamamlanamadı';
 
   @override
+  String get rewardSectionHeader => 'Kazanımlar';
+
+  @override
+  String get whyThisMattersHeader => 'Neden önemli';
+
+  @override
   String get titleLabel => 'Başlık';
 
   @override

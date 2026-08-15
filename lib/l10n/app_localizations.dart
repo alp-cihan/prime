@@ -518,6 +518,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t complete this quest'**
   String get couldntCompleteQuest;
 
+  /// No description provided for @rewardSectionHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards'**
+  String get rewardSectionHeader;
+
+  /// No description provided for @whyThisMattersHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this matters'**
+  String get whyThisMattersHeader;
+
   /// No description provided for @titleLabel.
   ///
   /// In en, this message translates to:

@@ -19,12 +19,17 @@ final _today = DateTime.utc(2026, 1, 10);
 
 Quest _buildQuest({
   String id = 'q1',
+  String title = 'Workout',
+  String description = 'Go to the gym',
   QuestCompletionState state = QuestCompletionState.notStarted,
+  String? visualKey,
+  ProgressType progressType = ProgressType.binary,
+  double targetProgress = 1,
 }) {
   return Quest(
     id: id,
-    title: 'Workout',
-    description: 'Go to the gym',
+    title: title,
+    description: description,
     type: QuestType.daily,
     difficulty: QuestDifficulty.normal,
     attributeXpWeights: const {
@@ -32,16 +37,31 @@ Quest _buildQuest({
       AttributeType.strength: 40,
     },
     linkedIdentityStatementIds: const [],
-    progressType: ProgressType.binary,
+    progressType: progressType,
     currentProgress: 0,
-    targetProgress: 1,
+    targetProgress: targetProgress,
     prerequisiteQuestIds: const [],
     state: state,
     failureBehavior: FailureBehavior.expire,
+    visualKey: visualKey,
   );
 }
 
-Widget _harness(String questId, List<Override> overrides) {
+/// Same reasoning as `today_page_test.dart`/`quest_progress_controls_widget_test.dart`'s
+/// identically-named helper — the Phase 19 hero + Rewards + Why-this-matters
+/// sections push content well past the default 800x600 test surface.
+void _growViewport(
+  WidgetTester tester, {
+  double width = 800,
+  double height = 1400,
+}) {
+  tester.view.physicalSize = Size(width, height);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+Widget _harness(String questId, List<Override> overrides, {Locale? locale}) {
   final router = GoRouter(
     initialLocation: '/quests/$questId',
     routes: [
@@ -73,6 +93,7 @@ Widget _harness(String questId, List<Override> overrides) {
     overrides: overrides,
     child: MaterialApp.router(
       routerConfig: router,
+      locale: locale,
       localizationsDelegates: testLocalizationsDelegates,
       supportedLocales: testSupportedLocales,
     ),
@@ -122,9 +143,12 @@ void main() {
     await tester.pumpWidget(_harness('q1', overrides));
     await tester.pumpAndSettle();
 
-    expect(find.text('Workout'), findsOneWidget); // AppBar title
+    // AppBar title + the hero's own overlaid title (Phase 19).
+    expect(find.text('Workout'), findsWidgets);
     expect(find.text('Go to the gym'), findsOneWidget);
-    expect(find.text('Normal'), findsOneWidget);
+    // Difficulty is shown both on the hero footer and in the Rewards
+    // section (Phase 19) — both bullet lists in the spec ask for it.
+    expect(find.text('Normal'), findsWidgets);
     expect(find.textContaining('100 XP'), findsWidgets); // 60 + 40
   });
 
@@ -455,8 +479,279 @@ void main() {
 
       // Stayed on the detail screen — never navigated to the list.
       expect(find.text('quest-list'), findsNothing);
-      expect(find.text('Workout'), findsOneWidget); // AppBar title still shows
+      // AppBar title + the hero's own overlaid title (Phase 19).
+      expect(find.text('Workout'), findsWidgets);
       expect(questRepository.quests.containsKey('q1'), isTrue);
     },
   );
+
+  group('Phase 19 (Quest Detail redesign)', () {
+    testWidgets(
+      'hero renders the quest visualKey\'s bundled asset, not the gradient '
+      'placeholder',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()
+            ..quests['q1'] = _buildQuest(visualKey: 'fitness/walk_20'),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(_harness('q1', overrides));
+        await tester.pumpAndSettle();
+
+        final image = tester.widget<Image>(find.byType(Image));
+        expect(
+          (image.image as AssetImage).assetName,
+          'assets/visuals/walking.png',
+        );
+      },
+    );
+
+    testWidgets(
+      'hero falls back to the gradient placeholder for a hand-typed quest '
+      'with no visualKey',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(_harness('q1', overrides));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(Image), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'quantity quest primary CTA reads Begin before any progress, then '
+      'Continue once some exists',
+      (tester) async {
+        _growViewport(tester);
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()
+            ..quests['q1'] = _buildQuest(
+              progressType: ProgressType.quantity,
+              targetProgress: 8,
+            ),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(_harness('q1', overrides));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Begin'), findsOneWidget);
+        expect(find.text('Continue'), findsNothing);
+
+        await tester.tap(find.text('Begin'));
+        await tester.pumpAndSettle();
+
+        // The CTA's own `+1` landed, same as the stepper's `+1` would have.
+        expect(find.text('1 / 8'), findsOneWidget);
+        expect(find.text('Continue'), findsOneWidget);
+        expect(find.text('Begin'), findsNothing);
+      },
+    );
+
+    testWidgets('duration quest primary CTA adds progress through the same '
+        'controller the quick-add buttons use, and disappears once complete', (
+      tester,
+    ) async {
+      _growViewport(tester);
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository()
+          ..quests['q1'] = _buildQuest(
+            progressType: ProgressType.duration,
+            targetProgress: 5,
+          ),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness('q1', overrides));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Begin'), findsOneWidget);
+
+      await tester.tap(find.text('Begin'));
+      await tester.pumpAndSettle();
+
+      // 5-minute step clamps to the 5-minute target and completes it —
+      // once complete, neither Begin nor Continue is shown anymore.
+      expect(find.text('5 / 5 min'), findsOneWidget);
+      expect(find.text('Begin'), findsNothing);
+      expect(find.text('Continue'), findsNothing);
+    });
+
+    testWidgets('quantity quest shown as finished once complete: bar full, no '
+        'primary CTA, no crash', (tester) async {
+      _growViewport(tester);
+      final progressRepository = FakeQuestProgressRepository()
+        ..entries.add(
+          QuestProgress(
+            questId: 'q1',
+            date: _today,
+            progressValue: 8,
+            isComplete: true,
+          ),
+        );
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository()
+          ..quests['q1'] = _buildQuest(
+            progressType: ProgressType.quantity,
+            targetProgress: 8,
+          ),
+        questProgressRepository: progressRepository,
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(_harness('q1', overrides));
+      await tester.pumpAndSettle();
+
+      expect(find.text('8 / 8'), findsOneWidget);
+      expect(find.text('Begin'), findsNothing);
+      expect(find.text('Continue'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders in Turkish: hero, CTA, and Rewards all localize', (
+      tester,
+    ) async {
+      _growViewport(tester);
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository()
+          ..quests['q1'] = _buildQuest(
+            title: 'Egzersiz yap',
+            description: 'Spor salonuna git',
+            progressType: ProgressType.quantity,
+            targetProgress: 8,
+          ),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(
+        _harness('q1', overrides, locale: const Locale('tr')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Egzersiz yap'), findsWidgets); // AppBar + hero
+      expect(find.text('Başla'), findsOneWidget); // Begin
+      expect(find.text('Kazanımlar'), findsOneWidget); // Rewards header
+      expect(find.text('Neden önemli'), findsOneWidget); // Why this matters
+      expect(find.text('Normal'), findsWidgets); // difficulty, unchanged
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('renders in English: CTA and Rewards header are English', (
+      tester,
+    ) async {
+      _growViewport(tester);
+      final overrides = fakeProviderOverrides(
+        questRepository: FakeQuestRepository()
+          ..quests['q1'] = _buildQuest(
+            progressType: ProgressType.quantity,
+            targetProgress: 8,
+          ),
+        questProgressRepository: FakeQuestProgressRepository(),
+        xpLedgerRepository: FakeXpLedgerRepository(),
+        today: _today,
+      );
+
+      await tester.pumpWidget(
+        _harness('q1', overrides, locale: const Locale('en')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Begin'), findsOneWidget);
+      expect(find.text('Rewards'), findsOneWidget);
+      expect(find.text('Why this matters'), findsOneWidget);
+    });
+
+    testWidgets(
+      'a long Turkish quest title renders without overflow at 360px width',
+      (tester) async {
+        _growViewport(tester, width: 360, height: 1400);
+
+        const longTurkishTitle =
+            'Dağıtık sistemler hakkında çok uzun bir kitabın tam bir '
+            'bölümünü her sabah işe gitmeden önce oku';
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()
+            ..quests['q1'] = _buildQuest(
+              title: longTurkishTitle,
+              progressType: ProgressType.duration,
+              targetProgress: 30,
+            ),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(
+          _harness('q1', overrides, locale: const Locale('tr')),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      '360px width with every section present (hero, progress, primary '
+      'action, rewards, why this matters) renders without overflow',
+      (tester) async {
+        _growViewport(tester, width: 360, height: 1600);
+
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()
+            ..quests['q1'] = _buildQuest(
+              visualKey: 'fitness/walk_20',
+              progressType: ProgressType.quantity,
+              targetProgress: 8,
+            ),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(_harness('q1', overrides));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Rewards'), findsOneWidget);
+        expect(find.text('Why this matters'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a quest with no description renders no Why-this-matters section — '
+      'never invents motivational copy',
+      (tester) async {
+        final overrides = fakeProviderOverrides(
+          questRepository: FakeQuestRepository()
+            ..quests['q1'] = _buildQuest(description: ''),
+          questProgressRepository: FakeQuestProgressRepository(),
+          xpLedgerRepository: FakeXpLedgerRepository(),
+          today: _today,
+        );
+
+        await tester.pumpWidget(_harness('q1', overrides));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Why this matters'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
 }

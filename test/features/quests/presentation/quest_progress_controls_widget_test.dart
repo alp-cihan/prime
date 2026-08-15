@@ -37,6 +37,18 @@ Quest _buildQuest({
   );
 }
 
+/// Phase 19's redesigned detail page adds a ~200px image hero plus Rewards/
+/// Why-this-matters sections above these controls — taller than the default
+/// 800x600 test surface, so a tap on a control that's now below the fold
+/// would otherwise silently miss. Same fix as `today_page_test.dart`'s
+/// identically-named helper.
+void _growViewport(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 Widget _harness(List<Override> overrides) {
   final router = GoRouter(
     initialLocation: '/quests/q1',
@@ -68,6 +80,7 @@ Widget _harness(List<Override> overrides) {
 void main() {
   group('quantity quest controls', () {
     testWidgets('renders current/target and a progress bar', (tester) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
         questProgressRepository: FakeQuestProgressRepository(),
@@ -85,6 +98,7 @@ void main() {
     });
 
     testWidgets('the minus button is disabled at zero', (tester) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
         questProgressRepository: FakeQuestProgressRepository(),
@@ -105,6 +119,7 @@ void main() {
     });
 
     testWidgets('tapping plus increments progress', (tester) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
         questProgressRepository: FakeQuestProgressRepository(),
@@ -122,6 +137,7 @@ void main() {
     });
 
     testWidgets('the plus button is disabled once at target', (tester) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
           ..quests['q1'] = _buildQuest(targetProgress: 1),
@@ -149,6 +165,7 @@ void main() {
     testWidgets(
       'shows completion feedback exactly once when target is reached',
       (tester) async {
+        _growViewport(tester);
         final overrides = fakeProviderOverrides(
           questRepository: FakeQuestRepository()
             ..quests['q1'] = _buildQuest(targetProgress: 1),
@@ -170,6 +187,7 @@ void main() {
     testWidgets(
       'disables controls and shows a spinner while a mutation is in flight',
       (tester) async {
+        _growViewport(tester);
         final progressRepository = FakeQuestProgressRepository();
         final overrides = fakeProviderOverrides(
           questRepository: FakeQuestRepository()..quests['q1'] = _buildQuest(),
@@ -231,6 +249,7 @@ void main() {
     testWidgets('renders current/target minutes and quick-add buttons', (
       tester,
     ) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
           ..quests['q1'] = buildDurationQuest(),
@@ -250,6 +269,7 @@ void main() {
     });
 
     testWidgets('tapping +10 min adds ten minutes', (tester) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
           ..quests['q1'] = buildDurationQuest(),
@@ -270,6 +290,7 @@ void main() {
     testWidgets('quick-add clamps to the target rather than overshooting', (
       tester,
     ) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
           ..quests['q1'] = _buildQuest(
@@ -292,6 +313,7 @@ void main() {
     });
 
     testWidgets('-5 min decrements minutes', (tester) async {
+      _growViewport(tester);
       final progressRepository = FakeQuestProgressRepository();
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
@@ -339,6 +361,7 @@ void main() {
     testWidgets('shows the completed indicator once complete today', (
       tester,
     ) async {
+      _growViewport(tester);
       final overrides = fakeProviderOverrides(
         questRepository: FakeQuestRepository()
           ..quests['q1'] = _buildQuest(

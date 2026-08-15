@@ -84,6 +84,8 @@
   "baseXpLabel": "Base XP",
   "statusLabel": "Status",
   "couldntCompleteQuest": "Couldn't complete this quest",
+  "rewardSectionHeader": "Rewards",
+  "whyThisMattersHeader": "Why this matters",
 
   "titleLabel": "Title",
   "descriptionLabel": "Description",

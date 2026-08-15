@@ -77,6 +77,8 @@
   "baseXpLabel": "Temel XP",
   "statusLabel": "Durum",
   "couldntCompleteQuest": "Bu görev tamamlanamadı",
+  "rewardSectionHeader": "Kazanımlar",
+  "whyThisMattersHeader": "Neden önemli",
 
   "titleLabel": "Başlık",
   "descriptionLabel": "Açıklama",

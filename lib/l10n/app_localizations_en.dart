@@ -237,6 +237,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldntCompleteQuest => 'Couldn\'t complete this quest';
 
   @override
+  String get rewardSectionHeader => 'Rewards';
+
+  @override
+  String get whyThisMattersHeader => 'Why this matters';
+
+  @override
   String get titleLabel => 'Title';
 
   @override
