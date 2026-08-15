@@ -160,7 +160,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get couldntLoadTodayQuests => 'Bugünkü görevler yüklenemedi.';
 
   @override
-  String get mainQuestLabel => 'ANA GÖREV';
+  String get mainQuestLabel => 'BUGÜNÜN GÖREVİ';
+
+  @override
+  String get heroCtaBegin => 'Başla';
+
+  @override
+  String get heroEmptyHeadline => 'Bugünün görevine hazır mısın?';
 
   @override
   String get completedTodayLabel => 'Bugün tamamlandı';

@@ -371,8 +371,20 @@ abstract class AppLocalizations {
   /// No description provided for @mainQuestLabel.
   ///
   /// In en, this message translates to:
-  /// **'MAIN QUEST'**
+  /// **'TODAY\'S MISSION'**
   String get mainQuestLabel;
+
+  /// No description provided for @heroCtaBegin.
+  ///
+  /// In en, this message translates to:
+  /// **'Begin'**
+  String get heroCtaBegin;
+
+  /// No description provided for @heroEmptyHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for today\'s mission?'**
+  String get heroEmptyHeadline;
 
   /// No description provided for @completedTodayLabel.
   ///

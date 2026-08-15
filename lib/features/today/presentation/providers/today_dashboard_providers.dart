@@ -71,17 +71,17 @@ Future<TodayQuestProgressSummary> todayQuestProgressSummary(Ref ref) async {
   );
 }
 
-/// The Main Quest card's selection (docs/architecture.md §13.3): the first
-/// active quest not yet completed today, in [watchAllQuestsProvider]'s own
-/// deterministic order; if every active quest is already complete, falls
-/// back to the first active quest; `null` only when there are no active
-/// quests at all (the empty state).
-@riverpod
-Future<Quest?> featuredQuest(Ref ref) async {
-  final quests = await ref.watch(watchAllQuestsProvider.future);
-  final activeQuests = quests.where(_isActiveQuest).toList();
-  if (activeQuests.isEmpty) return null;
-
+/// Shared by [featuredQuest] and [continueQuest]: the first quest in
+/// [activeQuests] not yet completed today, or the first quest if every one
+/// already is. Deliberately a plain helper rather than having [continueQuest]
+/// watch [featuredQuestProvider] itself — two independent async providers
+/// each watching the same `questProgressForDateProvider` family member via
+/// `.future`, one of them reached indirectly through another provider's
+/// `.future`, trips a Riverpod-internal subscription-pause assertion
+/// (`pausedActiveSubscriptionCount` mismatch) under rapid rebuilds (e.g. tab
+/// navigation). Recomputing the same small, already-tested rule locally
+/// avoids that shared dependency path entirely.
+Future<Quest> _selectFeatured(Ref ref, List<Quest> activeQuests) async {
   for (final quest in activeQuests) {
     final anchor = ref.watch(
       questOccurrenceAnchorDateProvider(quest.repeatability),
@@ -92,6 +92,53 @@ Future<Quest?> featuredQuest(Ref ref) async {
     if (!(progress?.isComplete ?? false)) return quest;
   }
   return activeQuests.first;
+}
+
+/// The Main Quest card's selection (docs/architecture.md §13.3): the first
+/// active quest not yet completed today, in [watchAllQuestsProvider]'s own
+/// deterministic order; if every active quest is already complete, falls
+/// back to the first active quest; `null` only when there are no active
+/// quests at all (the empty state).
+@riverpod
+Future<Quest?> featuredQuest(Ref ref) async {
+  final quests = await ref.watch(watchAllQuestsProvider.future);
+  final activeQuests = quests.where(_isActiveQuest).toList();
+  if (activeQuests.isEmpty) return null;
+  return _selectFeatured(ref, activeQuests);
+}
+
+/// Phase 18 — the Today 2.0 "Continue" section's selection: the first
+/// active, non-binary quest (quantity/duration — binary quests are only ever
+/// "done" or "not done," so they have no partial "progress" to continue)
+/// that already has measurable progress today (`progressValue > 0`) but
+/// isn't complete yet, excluding whichever quest [featuredQuest]'s same
+/// selection rule already put in the hero card — Continue exists to surface
+/// a *second* quest worth resuming, never to duplicate the hero. Same
+/// deterministic ordering as [featuredQuest] ([watchAllQuestsProvider]'s own
+/// order); `null` when nothing qualifies, which is exactly when the
+/// presentation layer omits the section entirely.
+@riverpod
+Future<Quest?> continueQuest(Ref ref) async {
+  final quests = await ref.watch(watchAllQuestsProvider.future);
+  final activeQuests = quests.where(_isActiveQuest).toList();
+  if (activeQuests.isEmpty) return null;
+  final featuredId = (await _selectFeatured(ref, activeQuests)).id;
+
+  for (final quest in activeQuests) {
+    if (quest.id == featuredId) continue;
+    if (quest.progressType == ProgressType.binary) continue;
+    final anchor = ref.watch(
+      questOccurrenceAnchorDateProvider(quest.repeatability),
+    );
+    final progress = await ref.watch(
+      questProgressForDateProvider(quest.id, anchor).future,
+    );
+    if (progress == null) continue;
+    if (progress.isComplete) continue;
+    if (progress.progressValue <= 0) continue;
+    return quest;
+  }
+  return null;
 }
 
 /// Every XP transaction recorded today, across all quests — the Activity/XP

@@ -63,20 +63,28 @@ class _PlayerHeaderContent extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final progress = summary.progressRatio.clamp(0.0, 1.0);
 
+    // Phase 18 (Today 2.0): deliberately compact — the hero Today's Mission
+    // card below is the screen's dominant element, so this trims padding/
+    // ring size/type scale versus the original v1 hero-style header without
+    // dropping any of the required content (greeting, level, lifetime XP,
+    // progress, one motivational line).
     return GradientSurfaceCard(
       gradient: AppGradients.hero,
-      borderRadius: 24,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      borderRadius: 20,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _greeting(l10n, DateTime.now()),
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.labelLarge?.copyWith(
               color: AppColors.darkTextSecondary,
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -88,47 +96,51 @@ class _PlayerHeaderContent extends StatelessWidget {
                       l10n.playerLevelLabel(summary.currentLevel),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineMedium,
+                      style: theme.textTheme.titleLarge,
                     ),
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: 2),
                     Text(
                       l10n.playerXpTotal(formatXp(summary.totalXp)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                    Text(
+                      l10n.playerXpToNextLevel(
+                        summary.xpIntoCurrentLevel,
+                        summary.xpNeededForNextLevel,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: AppColors.darkTextSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.sm),
               ProgressRing(
                 progress: progress,
-                size: 64,
-                strokeWidth: 6,
+                size: 48,
+                strokeWidth: 5,
                 child: Text(
                   l10n.percentValue((progress * 100).round()),
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
+                    fontSize: 11,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.playerXpToNextLevel(
-              summary.xpIntoCurrentLevel,
-              summary.xpNeededForNextLevel,
-            ),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: AppColors.darkTextSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             _motivationalLine(l10n, summary.currentLevel),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.darkTextSecondary,
               fontStyle: FontStyle.italic,
@@ -147,11 +159,11 @@ class _PlayerHeaderSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 168,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      height: 128,
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: AppGradients.hero,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: const Center(
         child: SizedBox(

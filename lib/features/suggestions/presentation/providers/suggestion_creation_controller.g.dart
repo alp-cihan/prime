@@ -90,7 +90,7 @@ final class SuggestionCreationControllerProvider
 }
 
 String _$suggestionCreationControllerHash() =>
-    r'63c32bdc0f72c0fff88c3a431c336fd1ec9b7424';
+    r'b83e1097e307e350d7f4f6b63501e082a2bd0155';
 
 /// Drives "Add Quest" for one suggestion through
 /// [CreateQuestFromSuggestionUseCase] — a `family` keyed by suggestion id so

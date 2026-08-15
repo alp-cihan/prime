@@ -157,7 +157,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldntLoadTodayQuests => 'Couldn\'t load today\'s quests.';
 
   @override
-  String get mainQuestLabel => 'MAIN QUEST';
+  String get mainQuestLabel => 'TODAY\'S MISSION';
+
+  @override
+  String get heroCtaBegin => 'Begin';
+
+  @override
+  String get heroEmptyHeadline => 'Ready for today\'s mission?';
 
   @override
   String get completedTodayLabel => 'Completed today';

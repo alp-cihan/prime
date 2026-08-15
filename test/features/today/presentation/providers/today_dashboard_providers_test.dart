@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prime/core/domain/attribute_type.dart';
 import 'package:prime/features/quests/application/models/complete_quest_command.dart';
 import 'package:prime/features/quests/domain/entities/quest.dart';
+import 'package:prime/features/quests/domain/entities/quest_progress.dart';
 import 'package:prime/features/quests/presentation/providers/complete_quest_controller.dart';
 import 'package:prime/features/quests/presentation/providers/quest_repository_providers.dart';
 import 'package:prime/features/today/presentation/providers/today_dashboard_providers.dart';
@@ -216,6 +217,234 @@ void main() {
           final value = container.read(featuredQuestProvider).value;
           return value?.id == 'q1';
         });
+      },
+    );
+  });
+
+  group('continueQuest (Phase 18)', () {
+    test('returns null when there are no quests', () async {
+      final container = await _buildTodayContainer();
+      addTearDown(container.dispose);
+      final subscription = container.listen(
+        continueQuestProvider,
+        (previous, next) {},
+      );
+      addTearDown(subscription.close);
+
+      final quest = await container.read(continueQuestProvider.future);
+      expect(quest, isNull);
+    });
+
+    test('returns null when the only quest is the featured one', () async {
+      final container = await _buildTodayContainer();
+      addTearDown(container.dispose);
+      final questRepository = container.read(questRepositoryProvider);
+      await questRepository.upsert(_buildQuest(id: 'q1', title: 'Only'));
+      final subscription = container.listen(
+        continueQuestProvider,
+        (previous, next) {},
+      );
+      addTearDown(subscription.close);
+
+      final quest = await container.read(continueQuestProvider.future);
+      expect(quest, isNull);
+    });
+
+    test(
+      'returns null for a binary second quest (no measurable progress)',
+      () async {
+        final container = await _buildTodayContainer();
+        addTearDown(container.dispose);
+        final questRepository = container.read(questRepositoryProvider);
+        await questRepository.upsert(_buildQuest(id: 'q1', title: 'Featured'));
+        await questRepository.upsert(
+          _buildQuest(id: 'q2', title: 'Binary too'),
+        );
+        final subscription = container.listen(
+          continueQuestProvider,
+          (previous, next) {},
+        );
+        addTearDown(subscription.close);
+
+        final quest = await container.read(continueQuestProvider.future);
+        expect(quest, isNull);
+      },
+    );
+
+    test(
+      'returns null for a non-binary second quest with zero progress today',
+      () async {
+        final container = await _buildTodayContainer();
+        addTearDown(container.dispose);
+        final questRepository = container.read(questRepositoryProvider);
+        await questRepository.upsert(_buildQuest(id: 'q1', title: 'Featured'));
+        await questRepository.upsert(
+          Quest(
+            id: 'q2',
+            title: 'Read',
+            description: '',
+            type: QuestType.daily,
+            difficulty: QuestDifficulty.normal,
+            attributeXpWeights: const {AttributeType.knowledge: 30},
+            linkedIdentityStatementIds: const [],
+            progressType: ProgressType.quantity,
+            currentProgress: 0,
+            targetProgress: 20,
+            prerequisiteQuestIds: const [],
+            state: QuestCompletionState.notStarted,
+            failureBehavior: FailureBehavior.expire,
+          ),
+        );
+        final subscription = container.listen(
+          continueQuestProvider,
+          (previous, next) {},
+        );
+        addTearDown(subscription.close);
+
+        final quest = await container.read(continueQuestProvider.future);
+        expect(quest, isNull);
+      },
+    );
+
+    test('selects a second, non-featured, non-binary quest with progress > 0 '
+        'that is not yet complete', () async {
+      final container = await _buildTodayContainer();
+      addTearDown(container.dispose);
+      final questRepository = container.read(questRepositoryProvider);
+      await questRepository.upsert(_buildQuest(id: 'q1', title: 'Featured'));
+      await questRepository.upsert(
+        Quest(
+          id: 'q2',
+          title: 'Read',
+          description: '',
+          type: QuestType.daily,
+          difficulty: QuestDifficulty.normal,
+          attributeXpWeights: const {AttributeType.knowledge: 30},
+          linkedIdentityStatementIds: const [],
+          progressType: ProgressType.quantity,
+          currentProgress: 0,
+          targetProgress: 20,
+          prerequisiteQuestIds: const [],
+          state: QuestCompletionState.inProgress,
+          failureBehavior: FailureBehavior.expire,
+        ),
+      );
+      final progressRepository = container.read(
+        questProgressRepositoryProvider,
+      );
+      await progressRepository.upsert(
+        QuestProgress(
+          questId: 'q2',
+          date: _today,
+          progressValue: 12,
+          isComplete: false,
+        ),
+      );
+      final subscription = container.listen(
+        continueQuestProvider,
+        (previous, next) {},
+      );
+      addTearDown(subscription.close);
+
+      final quest = await container.read(continueQuestProvider.future);
+      expect(quest?.id, 'q2');
+    });
+
+    test(
+      'never returns the same quest featuredQuest already selected',
+      () async {
+        final container = await _buildTodayContainer();
+        addTearDown(container.dispose);
+        final questRepository = container.read(questRepositoryProvider);
+        // Only one quest exists, and it has partial (non-binary) progress —
+        // without the featured-quest exclusion this would wrongly also
+        // become the Continue pick.
+        await questRepository.upsert(
+          Quest(
+            id: 'q1',
+            title: 'Read',
+            description: '',
+            type: QuestType.daily,
+            difficulty: QuestDifficulty.normal,
+            attributeXpWeights: const {AttributeType.knowledge: 30},
+            linkedIdentityStatementIds: const [],
+            progressType: ProgressType.quantity,
+            currentProgress: 0,
+            targetProgress: 20,
+            prerequisiteQuestIds: const [],
+            state: QuestCompletionState.inProgress,
+            failureBehavior: FailureBehavior.expire,
+          ),
+        );
+        final progressRepository = container.read(
+          questProgressRepositoryProvider,
+        );
+        await progressRepository.upsert(
+          QuestProgress(
+            questId: 'q1',
+            date: _today,
+            progressValue: 12,
+            isComplete: false,
+          ),
+        );
+        final subscription = container.listen(
+          continueQuestProvider,
+          (previous, next) {},
+        );
+        addTearDown(subscription.close);
+
+        final featured = await container.read(featuredQuestProvider.future);
+        final continueQuest = await container.read(
+          continueQuestProvider.future,
+        );
+        expect(featured?.id, 'q1');
+        expect(continueQuest, isNull);
+      },
+    );
+
+    test(
+      'excludes a completed second quest even with prior progress',
+      () async {
+        final container = await _buildTodayContainer();
+        addTearDown(container.dispose);
+        final questRepository = container.read(questRepositoryProvider);
+        await questRepository.upsert(_buildQuest(id: 'q1', title: 'Featured'));
+        await questRepository.upsert(
+          Quest(
+            id: 'q2',
+            title: 'Read',
+            description: '',
+            type: QuestType.daily,
+            difficulty: QuestDifficulty.normal,
+            attributeXpWeights: const {AttributeType.knowledge: 30},
+            linkedIdentityStatementIds: const [],
+            progressType: ProgressType.quantity,
+            currentProgress: 0,
+            targetProgress: 20,
+            prerequisiteQuestIds: const [],
+            state: QuestCompletionState.complete,
+            failureBehavior: FailureBehavior.expire,
+          ),
+        );
+        final progressRepository = container.read(
+          questProgressRepositoryProvider,
+        );
+        await progressRepository.upsert(
+          QuestProgress(
+            questId: 'q2',
+            date: _today,
+            progressValue: 20,
+            isComplete: true,
+          ),
+        );
+        final subscription = container.listen(
+          continueQuestProvider,
+          (previous, next) {},
+        );
+        addTearDown(subscription.close);
+
+        final quest = await container.read(continueQuestProvider.future);
+        expect(quest, isNull);
       },
     );
   });

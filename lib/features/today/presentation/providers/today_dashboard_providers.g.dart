@@ -118,7 +118,72 @@ final class FeaturedQuestProvider
   }
 }
 
-String _$featuredQuestHash() => r'222f24ad4ccfac580d66d1c9abf78fb9997e15c3';
+String _$featuredQuestHash() => r'c78470d7a0b2228a95de2c146f04c4ef98061c75';
+
+/// Phase 18 — the Today 2.0 "Continue" section's selection: the first
+/// active, non-binary quest (quantity/duration — binary quests are only ever
+/// "done" or "not done," so they have no partial "progress" to continue)
+/// that already has measurable progress today (`progressValue > 0`) but
+/// isn't complete yet, excluding whichever quest [featuredQuest]'s same
+/// selection rule already put in the hero card — Continue exists to surface
+/// a *second* quest worth resuming, never to duplicate the hero. Same
+/// deterministic ordering as [featuredQuest] ([watchAllQuestsProvider]'s own
+/// order); `null` when nothing qualifies, which is exactly when the
+/// presentation layer omits the section entirely.
+
+@ProviderFor(continueQuest)
+final continueQuestProvider = ContinueQuestProvider._();
+
+/// Phase 18 — the Today 2.0 "Continue" section's selection: the first
+/// active, non-binary quest (quantity/duration — binary quests are only ever
+/// "done" or "not done," so they have no partial "progress" to continue)
+/// that already has measurable progress today (`progressValue > 0`) but
+/// isn't complete yet, excluding whichever quest [featuredQuest]'s same
+/// selection rule already put in the hero card — Continue exists to surface
+/// a *second* quest worth resuming, never to duplicate the hero. Same
+/// deterministic ordering as [featuredQuest] ([watchAllQuestsProvider]'s own
+/// order); `null` when nothing qualifies, which is exactly when the
+/// presentation layer omits the section entirely.
+
+final class ContinueQuestProvider
+    extends $FunctionalProvider<AsyncValue<Quest?>, Quest?, FutureOr<Quest?>>
+    with $FutureModifier<Quest?>, $FutureProvider<Quest?> {
+  /// Phase 18 — the Today 2.0 "Continue" section's selection: the first
+  /// active, non-binary quest (quantity/duration — binary quests are only ever
+  /// "done" or "not done," so they have no partial "progress" to continue)
+  /// that already has measurable progress today (`progressValue > 0`) but
+  /// isn't complete yet, excluding whichever quest [featuredQuest]'s same
+  /// selection rule already put in the hero card — Continue exists to surface
+  /// a *second* quest worth resuming, never to duplicate the hero. Same
+  /// deterministic ordering as [featuredQuest] ([watchAllQuestsProvider]'s own
+  /// order); `null` when nothing qualifies, which is exactly when the
+  /// presentation layer omits the section entirely.
+  ContinueQuestProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'continueQuestProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$continueQuestHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<Quest?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Quest?> create(Ref ref) {
+    return continueQuest(ref);
+  }
+}
+
+String _$continueQuestHash() => r'1454fa1c76f76bd0f0b10deaba70b98c2e09851e';
 
 /// Every XP transaction recorded today, across all quests — the Activity/XP
 /// Summary section's source of truth.
